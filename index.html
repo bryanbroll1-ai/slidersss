@@ -241,12 +241,12 @@ function syncRopeLine(line) {
 
 // Brücke: t-Projektion auf A->B, Höhe aus durchhängendem Seil
 function bridgeSample(px, pz) {
-  const A = bridge.A, B = bridge.B;
-  const abx = B.x - A.x, abz = B.z - A.z;
+  const A = bridge.A, B = bridge.B;        // Vector2: .x = Welt-X, .y = Welt-Z
+  const abx = B.x - A.x, abz = B.y - A.y;
   const L2 = abx * abx + abz * abz;
-  let t = ((px - A.x) * abx + (pz - A.z) * abz) / L2;
+  let t = ((px - A.x) * abx + (pz - A.y) * abz) / L2;
   t = Math.max(0, Math.min(1, t));
-  const cx = A.x + abx * t, cz = A.z + abz * t;
+  const cx = A.x + abx * t, cz = A.y + abz * t;
   const perp = Math.hypot(px - cx, pz - cz);
   const n = bridge.rope.pts.length;
   const fp = t * (n - 1), i = Math.min(n - 2, Math.floor(fp)), fr = fp - i;
@@ -396,7 +396,7 @@ function buildTerrain(t) {
     for (let j = 0; j < segs; j++) {
       const a = rowStart[i] + j, b = rowStart[i] + j + 1;
       const c = rowStart[i + 1] + j, d = rowStart[i + 1] + j + 1;
-      idx.push(a, c, b, b, c, d);
+      idx.push(a, b, c, c, b, d);
     }
   }
   // Klippen-Rock (Außenring nach unten)
@@ -408,14 +408,14 @@ function buildTerrain(t) {
   }
   for (let j = 0; j < segs; j++) {
     const a = skirtTop + j, b = skirtTop + j + 1, c = base + j, d = base + j + 1;
-    idx.push(a, c, b, b, c, d);
+    idx.push(a, b, c, c, b, d);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geo.setIndex(idx);
   geo.computeVertexNormals();
-  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }));
   mesh.receiveShadow = true; mesh.castShadow = true;
   islandGroup.add(mesh);
 
