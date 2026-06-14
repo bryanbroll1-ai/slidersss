@@ -36,7 +36,7 @@
 <div id="overlay">
   <h1>🏔️ Land Sliders 3D</h1>
   <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt. Am PC: <b>WASD / Pfeile</b>, Leertaste stoppt.</p>
-  <p>Sammle alle ⭐, dann öffnet das 🌀 Portal. Nutze 🟢 Sprungfedern & 🔼 Lift-Knöpfe, balanciere über 🌉 Seilbrücken, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser und die 🔨 Abrissbirne!</p>
+  <p>Sammle alle ⭐, dann öffnet das 🌀 Portal. Nutze 🟢 Sprungfedern, balanciere über 🌉 Seilbrücken zwischen Inseln, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser und die 🔨 Abrissbirne!</p>
   <p id="hiLine"></p>
   <button id="startBtn">Spielen</button>
 </div>
@@ -325,10 +325,6 @@ function makeLevel(level) {
   const padCount = level >= 2 ? 1 + Math.floor(level / 3) + rint(0, 1) : 0;
   for (let i = 0; i < padCount; i++) addPad(level);
 
-  // --- Lift-Knopf (nach oben transportieren) ---
-  const buttonCount = level >= 3 ? 1 : (level >= 2 && Math.random() < 0.5 ? 1 : 0);
-  for (let i = 0; i < buttonCount; i++) addButton();
-
   // --- Gegner ---
   for (let i = 0; i < Math.max(0, level - 1); i++) spawnEnemy('chaser', level);
   for (let i = 0; i < Math.floor(level / 2); i++) spawnEnemy('pusher', level);
@@ -403,46 +399,72 @@ function buildBridge(t, subIdx = 0) {
   if (subChunks.length === 0) return;
   const sc = subChunks[subIdx % subChunks.length];
 
-  // Edge of main island pointing toward sub-island
+  // Facing edge points, inset 1.5 so bridge visibly starts on land
   const toSubAngle = Math.atan2(sc.z, sc.x);
-  const mainR = edgeRadiusAt(toSubAngle);
-  const Ax = Math.cos(toSubAngle) * (mainR - 0.8), Az = Math.sin(toSubAngle) * (mainR - 0.8);
+  const Ax = Math.cos(toSubAngle) * (edgeRadiusAt(toSubAngle) - 1.5);
+  const Az = Math.sin(toSubAngle) * (edgeRadiusAt(toSubAngle) - 1.5);
 
-  // Edge of sub-island pointing toward main island
   const toMainAngle = Math.atan2(-sc.z, -sc.x);
   const subEdgeR = edgeRadiusAtChunk(sc, toMainAngle);
-  const Bx = sc.x + Math.cos(toMainAngle) * (subEdgeR - 0.8), Bz = sc.z + Math.sin(toMainAngle) * (subEdgeR - 0.8);
+  const Bx = sc.x + Math.cos(toMainAngle) * (subEdgeR - 1.5);
+  const Bz = sc.z + Math.sin(toMainAngle) * (subEdgeR - 1.5);
 
-  const A = new THREE.Vector2(Ax, Az);  // .x=worldX .y=worldZ
+  const A = new THREE.Vector2(Ax, Az);  // .x=worldX, .y=worldZ
   const B = new THREE.Vector2(Bx, Bz);
   const span = Math.hypot(B.x - A.x, B.y - A.y);
-  if (span < 4) return;
+  if (span < 5) return;
 
-  const yA = groundHeight(A.x, A.y) + 0.6, yB = groundHeight(B.x, B.y) + 0.6;
-  const n = Math.max(8, Math.min(20, Math.floor(span / 1.4)));
+  const yA = groundHeight(A.x, A.y) + 0.55, yB = groundHeight(B.x, B.y) + 0.55;
+  const n = Math.max(10, Math.min(24, Math.floor(span / 1.3)));
   const segLen = span / n;
-  const pts = [];
-  for (let i = 0; i <= n; i++) {
-    const f = i / n;
-    pts.push(new THREE.Vector3(A.x + (B.x - A.x) * f, yA + (yB - yA) * f, A.y + (B.y - A.y) * f));
-  }
-  const rope = new Rope(pts, segLen * 1.06, { iter: 22, grav: 18, damp: 0.92 });
+
+  // Unit vectors along and perpendicular to bridge
+  const ddx = (B.x - A.x) / span, ddz = (B.y - A.y) / span;
+  const bw = 1.4;
+  const ox = -ddz * bw * 0.5, oz = ddx * bw * 0.5;  // half-width side offset
+
+  // Floor rope – drives plank height & player surfaceAt
+  const mkPts = (sx, sz, dy) => {
+    const arr = [];
+    for (let i = 0; i <= n; i++) {
+      const f = i / n;
+      arr.push(new THREE.Vector3(A.x + ddx * span * f + sx, yA + (yB - yA) * f + dy, A.y + ddz * span * f + sz));
+    }
+    return arr;
+  };
+  const rope = new Rope(mkPts(0, 0, 0), segLen * 1.04, { iter: 24, grav: 11, damp: 0.97 });
   rope.pin(0); rope.pin(n);
 
-  const bw = 1.5;
+  // Rail ropes – purely visual, raised 0.8 u and offset to sides
+  const rope1 = new Rope(mkPts(ox, oz, 0.8), segLen * 1.04, { iter: 18, grav: 9, damp: 0.97 });
+  rope1.pin(0); rope1.pin(n);
+  const rope2 = new Rope(mkPts(-ox, -oz, 0.8), segLen * 1.04, { iter: 18, grav: 9, damp: 0.97 });
+  rope2.pin(0); rope2.pin(n);
+
   const b = { A, B, rope, width: bw, planks: [] };
 
+  // Endpoint anchor posts (two side posts at each end)
   for (const [P, yP] of [[A, yA], [B, yB]]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.30, 2.6, 8), new THREE.MeshLambertMaterial({ color: 0x6a4a30 }));
-    post.position.set(P.x, yP + 0.7, P.y); post.castShadow = true; islandGroup.add(post);
+    for (const [sx, sz] of [[ox * 2, oz * 2], [-ox * 2, -oz * 2]]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 2.2, 7), new THREE.MeshLambertMaterial({ color: 0x7a5028 }));
+      post.position.set(P.x + sx, yP + 0.7, P.y + sz); post.castShadow = true; islandGroup.add(post);
+    }
   }
+
+  // Planks
   for (let i = 0; i < n; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(bw * 2, 0.14, segLen * 0.88), new THREE.MeshLambertMaterial({ color: 0x9a6a40 }));
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(bw * 2, 0.13, segLen * 0.84), new THREE.MeshLambertMaterial({ color: 0xa07040 }));
     plank.castShadow = true; islandGroup.add(plank); b.planks.push(plank);
   }
-  const rline = ropeLine(rope, 0x5a3a20); islandGroup.add(rline); ropes.push(rline);
+
+  // All three rope lines (floor + two rails)
+  for (const r of [rope, rope1, rope2]) {
+    const line = ropeLine(r, 0x5a3018);
+    islandGroup.add(line); ropes.push(line);
+  }
+
   bridges.push(b);
-  avoid.push({ x: (A.x + B.x) / 2, z: (A.y + B.y) / 2, r: span * 0.22 });
+  avoid.push({ x: (A.x + B.x) / 2, z: (A.y + B.y) / 2, r: span * 0.18 });
 }
 
 function buildTerrainChunk(sc, t) {
@@ -565,43 +587,6 @@ function addPad(level) {
   g.add(base, top); g.position.set(p.x, groundHeight(p.x, p.z), p.z);
   g.userData = { top, squash: 0, r: 1.0, power: 11 + level * 0.4 };
   islandGroup.add(g); pads.push(g);
-}
-
-function addButton() {
-  const p = freeSpot(0.72, 3.0);
-  const gy = groundHeight(p.x, p.z);
-  const platH = 3.8, platR = 2.8;
-
-  // Raised platform
-  const platform = new THREE.Mesh(new THREE.CylinderGeometry(platR, platR * 1.1, platH, 10), new THREE.MeshLambertMaterial({ color: 0x4a5a8a, flatShading: true }));
-  platform.position.set(p.x, gy + platH / 2, p.z); platform.castShadow = true; islandGroup.add(platform);
-  const platTop = new THREE.Mesh(new THREE.CylinderGeometry(platR, platR, 0.2, 10), new THREE.MeshLambertMaterial({ color: 0x6a8acc, flatShading: true }));
-  platTop.position.set(p.x, gy + platH + 0.1, p.z); islandGroup.add(platTop);
-
-  // Items on top of platform
-  const platY = gy + platH + 0.2;
-  for (let i = 0; i < 4; i++) {
-    const ca = (i / 4) * Math.PI * 2;
-    const coin = new THREE.Mesh(coinGeo, new THREE.MeshLambertMaterial({ color: 0xffc107, emissive: 0x5a4000 })); coin.rotation.x = Math.PI / 2;
-    coin.position.set(p.x + Math.cos(ca) * 1.4, platY + 1.0, p.z + Math.sin(ca) * 1.4); coin.userData.baseY = coin.position.y;
-    islandGroup.add(coin); coins.push(coin);
-  }
-  const pStar = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x806000 }));
-  pStar.position.set(p.x, platY + 1.15, p.z); pStar.userData.baseY = pStar.position.y;
-  islandGroup.add(pStar); stars.push(pStar);
-  occupied.push({ x: p.x, z: p.z, r: platR + 1.0 });
-
-  // Button at the base, slightly offset from the platform edge
-  const btnX = p.x + platR + 1.5, btnZ = p.z;
-  const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.25, 0.4, 18), new THREE.MeshLambertMaterial({ color: 0x2b3a8a, flatShading: true })); base.position.y = 0.2;
-  const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.32, 18), new THREE.MeshLambertMaterial({ color: 0x5fa8ff, emissive: 0x12305f })); btn.position.y = 0.5;
-  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.9, 5), new THREE.MeshLambertMaterial({ color: 0xeaf4ff, emissive: 0x3a6cff, emissiveIntensity: 0.4 })); arrow.position.y = 1.4;
-  g.add(base, btn, arrow);
-  g.position.set(btnX, groundHeight(btnX, btnZ), btnZ);
-  g.userData = { btn, arrow, press: 0, r: 1.1, cooldown: 0, platPos: { x: p.x, z: p.z, y: platY } };
-  islandGroup.add(g); buttons.push(g);
-  occupied.push({ x: btnX, z: btnZ, r: 1.4 });
 }
 
 function spawnEnemy(kind, level) {
@@ -816,21 +801,6 @@ function step(dt) {
   // --- Sprungfedern ---
   if (state.grounded) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power); Sound.boing(); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
 
-  // --- Lift-Knopf (teleportiert auf Plattform) ---
-  if (state.grounded) for (const bt of buttons) {
-    if (bt.userData.cooldown <= 0 && Math.hypot(state.pos.x - bt.position.x, state.pos.y - bt.position.z) < bt.userData.r) {
-      bt.userData.press = 1; bt.userData.cooldown = 3.0;
-      const pp = bt.userData.platPos;
-      burst(state.pos.x, state.y + 0.8, state.pos.y, 0x5fa8ff, 18, 7);
-      state.pos.set(pp.x, pp.z); state.y = pp.y; state.vy = 1.5;
-      state.vel.set(0, 0); state.grounded = true;
-      state.invincibleUntil = performance.now() + 500;
-      burst(pp.x, pp.y + 0.5, pp.z, 0x5fa8ff, 14, 5);
-      Sound.lift(); showToast('🔼 Plattform erreicht!'); break;
-    }
-  }
-  for (const bt of buttons) if (bt.userData.cooldown > 0) bt.userData.cooldown -= dt;
-
   // --- Vertikal ---
   if (state.grounded) {
     if (surf.type === 'none' && performance.now() > state.invincibleUntil) { state.grounded = false; state.vy = 0; }
@@ -944,8 +914,6 @@ function animate() {
   if (goal) goal.userData.ring.rotation.z = t * 1.5;
   shieldFx.rotation.y = t * 2; magnetFx.rotation.z = t * 3;
   for (const pad of pads) { if (pad.userData.squash > 0) pad.userData.squash = Math.max(0, pad.userData.squash - dt * 4); pad.userData.top.scale.y = 1 - pad.userData.squash * 0.6; pad.userData.top.position.y = 0.4 - pad.userData.squash * 0.1; }
-  for (const bt of buttons) { if (bt.userData.press > 0) bt.userData.press = Math.max(0, bt.userData.press - dt * 3); bt.userData.btn.position.y = 0.5 - bt.userData.press * 0.22; bt.userData.arrow.position.y = 1.4 + Math.sin(t * 4) * 0.12; bt.userData.arrow.rotation.y = t * 2; }
-
   const spd = state.vel.length(), moving = spd > 0.6 && state.grounded;
   for (let i = 0; i < legMeshes.length; i++) { const off = (i % 2 === 0 ? 0 : Math.PI); if (!state.grounded) legMeshes[i].rotation.x = -0.7; else legMeshes[i].rotation.x = moving ? Math.sin(state.animPhase + off) * Math.min(0.9, spd * 0.08) : THREE.MathUtils.lerp(legMeshes[i].rotation.x, 0, Math.min(1, 8 * dt)); }
   const stretch = THREE.MathUtils.clamp(state.vy * 0.03, -0.25, 0.35);
@@ -953,7 +921,7 @@ function animate() {
   rig.scale.set(sx, sy, sx); rig.rotation.x = state.leanX; rig.rotation.z = state.leanZ; rig.position.y = moving ? Math.abs(Math.sin(state.animPhase)) * 0.12 : 0;
 
   const wp = new THREE.Vector3(); player.getWorldPosition(wp); const sh = state.shake;
-  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 22 + (Math.random() - 0.5) * sh, wp.z + 9), 0.1);
+  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 16 + (Math.random() - 0.5) * sh, wp.z + 14), 0.1);
   camera.lookAt(wp.x, Math.max(wp.y, -4) + 1, wp.z);
   renderer.render(scene, camera);
 }
