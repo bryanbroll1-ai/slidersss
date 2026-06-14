@@ -115,7 +115,7 @@ let islandR = 22;                 // pro Level zufällig
 let islandGroup = null;
 let edgeRadii = [], edgeSegs = 28;
 let hills = [];
-let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [];
+let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [];
 let goal = null;
 const occupied = [];              // belegte Kreise -> verhindert Überlappung
 const avoid = [];                 // Zonen, die Spawns komplett meiden
@@ -137,7 +137,21 @@ function edgeRadiusAt(a) {
   const fi = (aa / (Math.PI * 2)) * edgeSegs, i0 = Math.floor(fi) % edgeSegs, i1 = (i0 + 1) % edgeSegs;
   return edgeRadii[i0] + (edgeRadii[i1] - edgeRadii[i0]) * (fi - Math.floor(fi));
 }
-function insideIsland(x, z, margin = 0) { const d = Math.hypot(x, z); if (d < 0.001) return true; return d < edgeRadiusAt(Math.atan2(z, x)) - margin; }
+function edgeRadiusAtChunk(sc, a) {
+  let aa = a; if (aa < 0) aa += Math.PI * 2; aa %= Math.PI * 2;
+  const n = sc.edgeSegs, fi = (aa / (Math.PI * 2)) * n, i0 = Math.floor(fi) % n, i1 = (i0 + 1) % n;
+  return sc.edgeRadii[i0] + (sc.edgeRadii[i1] - sc.edgeRadii[i0]) * (fi - Math.floor(fi));
+}
+function insideChunkXZ(sc, x, z, margin = 0) {
+  const lx = x - sc.x, lz = z - sc.z, ld = Math.hypot(lx, lz);
+  return ld < 0.001 || ld < edgeRadiusAtChunk(sc, Math.atan2(lz, lx)) - margin;
+}
+function insideIsland(x, z, margin = 0) {
+  const d = Math.hypot(x, z);
+  if (d < 0.001 || d < edgeRadiusAt(Math.atan2(z, x)) - margin) return true;
+  for (const sc of subChunks) if (insideChunkXZ(sc, x, z, margin)) return true;
+  return false;
+}
 function inHole(x, z) { return holes.some(h => Math.hypot(x - h.x, z - h.z) < h.r - 0.25); }
 
 function surfaceAt(px, pz) {
@@ -233,7 +247,7 @@ function makeLevel(level) {
   const t = themeFor(level); applyTheme(t);
   if (islandGroup) world.remove(islandGroup);
   islandGroup = new THREE.Group();
-  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = [];
+  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = [];
   goal = null; occupied.length = 0; avoid.length = 0;
 
   // --- Prozedurale Inselgröße & Form (Oberwellen + Rauschen) ---
@@ -258,10 +272,20 @@ function makeLevel(level) {
 
   buildTerrain(t);
 
-  // --- Seilbrücken (Anzahl/Länge variiert) ---
-  let bridgeCount = level >= 2 ? 1 : 0;
-  if (level >= 4 && Math.random() < 0.4) bridgeCount++;
-  for (let i = 0; i < bridgeCount; i++) buildBridge(t);
+  // --- Neben-Inseln (ab Level 2) ---
+  if (level >= 2) {
+    const subCount = level >= 4 ? 1 + rint(0, 1) : 1;
+    for (let i = 0; i < subCount; i++) {
+      const angle = Math.PI * (i * 1.3 + 0.4 + Math.random() * 0.6);
+      const dist = islandR + 14 + Math.random() * 6;
+      const subR = 6 + Math.random() * 5;
+      buildSubIsland(Math.cos(angle) * dist, Math.sin(angle) * dist, subR, t);
+    }
+  }
+
+  // --- Seilbrücken zwischen Inseln ---
+  const bridgeCount = subChunks.length;
+  for (let i = 0; i < bridgeCount; i++) buildBridge(t, i);
 
   // --- Löcher ---
   const holeCount = Math.max(0, level - 1) + rint(0, 1);
@@ -338,7 +362,8 @@ function makeLevel(level) {
   goal = makeGoal(); goal.position.set(gp.x, groundHeight(gp.x, gp.z), gp.z); islandGroup.add(goal);
 
   world.add(islandGroup);
-  return state ? (state.total = starCount) : starCount;
+  if (state) state.total = stars.length;
+  return stars.length;
 }
 
 function buildTerrain(t) {
@@ -374,35 +399,134 @@ function buildTerrain(t) {
   dirt.position.y = -8; islandGroup.add(dirt);
 }
 
-function buildBridge(t) {
-  const a = Math.random() * Math.PI * 2;
-  const span = 9 + Math.random() * 6;
-  const md = 4 + Math.random() * (islandR * 0.4);
-  const mx = Math.cos(a) * md, mz = Math.sin(a) * md;
-  const dir = new THREE.Vector2(Math.cos(a + Math.PI / 2), Math.sin(a + Math.PI / 2));
-  const A = new THREE.Vector2(mx - dir.x * span / 2, mz - dir.y * span / 2);
-  const B = new THREE.Vector2(mx + dir.x * span / 2, mz + dir.y * span / 2);
-  if (!insideIsland(A.x, A.y, 1) || !insideIsland(B.x, B.y, 1)) return; // außerhalb -> verwerfen
-  holes.push({ x: mx, z: mz, r: span * 0.34 });
-  const hm = new THREE.Mesh(new THREE.CircleGeometry(span * 0.34, 22), new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0.5, transparent: true }));
-  hm.rotation.x = -Math.PI / 2; hm.position.set(mx, groundHeight(mx, mz) + 0.05, mz); islandGroup.add(hm);
+function buildBridge(t, subIdx = 0) {
+  if (subChunks.length === 0) return;
+  const sc = subChunks[subIdx % subChunks.length];
 
-  const yA = groundHeight(A.x, A.y) + 0.4, yB = groundHeight(B.x, B.y) + 0.4, n = 12, pts = [];
-  for (let i = 0; i <= n; i++) { const f = i / n; pts.push(new THREE.Vector3(A.x + (B.x - A.x) * f, yA + (yB - yA) * f, A.y + (B.y - A.y) * f)); }
-  const rope = new Rope(pts, span / n * 1.04, { iter: 18, grav: 26, damp: 0.9 });
+  // Edge of main island pointing toward sub-island
+  const toSubAngle = Math.atan2(sc.z, sc.x);
+  const mainR = edgeRadiusAt(toSubAngle);
+  const Ax = Math.cos(toSubAngle) * (mainR - 0.8), Az = Math.sin(toSubAngle) * (mainR - 0.8);
+
+  // Edge of sub-island pointing toward main island
+  const toMainAngle = Math.atan2(-sc.z, -sc.x);
+  const subEdgeR = edgeRadiusAtChunk(sc, toMainAngle);
+  const Bx = sc.x + Math.cos(toMainAngle) * (subEdgeR - 0.8), Bz = sc.z + Math.sin(toMainAngle) * (subEdgeR - 0.8);
+
+  const A = new THREE.Vector2(Ax, Az);  // .x=worldX .y=worldZ
+  const B = new THREE.Vector2(Bx, Bz);
+  const span = Math.hypot(B.x - A.x, B.y - A.y);
+  if (span < 4) return;
+
+  const yA = groundHeight(A.x, A.y) + 0.6, yB = groundHeight(B.x, B.y) + 0.6;
+  const n = Math.max(8, Math.min(20, Math.floor(span / 1.4)));
+  const segLen = span / n;
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const f = i / n;
+    pts.push(new THREE.Vector3(A.x + (B.x - A.x) * f, yA + (yB - yA) * f, A.y + (B.y - A.y) * f));
+  }
+  const rope = new Rope(pts, segLen * 1.06, { iter: 22, grav: 18, damp: 0.92 });
   rope.pin(0); rope.pin(n);
-  const b = { A, B, rope, width: 1.4, planks: [] };
-  for (const P of [A, B]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 2.2, 8), new THREE.MeshLambertMaterial({ color: 0x6a4a30 }));
-    post.position.set(P.x, groundHeight(P.x, P.y) + 0.6, P.y); post.castShadow = true; islandGroup.add(post);
+
+  const bw = 1.5;
+  const b = { A, B, rope, width: bw, planks: [] };
+
+  for (const [P, yP] of [[A, yA], [B, yB]]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.30, 2.6, 8), new THREE.MeshLambertMaterial({ color: 0x6a4a30 }));
+    post.position.set(P.x, yP + 0.7, P.y); post.castShadow = true; islandGroup.add(post);
   }
   for (let i = 0; i < n; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(b.width * 2, 0.12, span / n * 0.9), new THREE.MeshLambertMaterial({ color: 0x9a6a40 }));
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(bw * 2, 0.14, segLen * 0.88), new THREE.MeshLambertMaterial({ color: 0x9a6a40 }));
     plank.castShadow = true; islandGroup.add(plank); b.planks.push(plank);
   }
   const rline = ropeLine(rope, 0x5a3a20); islandGroup.add(rline); ropes.push(rline);
   bridges.push(b);
-  avoid.push({ x: mx, z: mz, r: span * 0.55 });
+  avoid.push({ x: (A.x + B.x) / 2, z: (A.y + B.y) / 2, r: span * 0.22 });
+}
+
+function buildTerrainChunk(sc, t) {
+  const rings = 14, segs = 36, pos = [], idx = [], colors = [];
+  const cTop = new THREE.Color(t.ground), cLow = new THREE.Color(t.low), rowStart = [];
+  for (let i = 0; i <= rings; i++) {
+    rowStart.push(pos.length / 3);
+    const frac = i / rings;
+    for (let j = 0; j <= segs; j++) {
+      const a = (j / segs) * Math.PI * 2;
+      const r = edgeRadiusAtChunk(sc, a) * frac;
+      const wx = sc.x + Math.cos(a) * r, wz = sc.z + Math.sin(a) * r, y = groundHeight(wx, wz);
+      pos.push(wx, y, wz);
+      const c = cTop.clone().lerp(cLow, THREE.MathUtils.clamp(0.5 - y * 0.12, 0, 1));
+      colors.push(c.r, c.g, c.b);
+    }
+  }
+  for (let i = 0; i < rings; i++) for (let j = 0; j < segs; j++) {
+    const a = rowStart[i]+j, b = rowStart[i]+j+1, c = rowStart[i+1]+j, d = rowStart[i+1]+j+1;
+    idx.push(a, b, c, c, b, d);
+  }
+  const skirtTop = rowStart[rings], base = pos.length / 3;
+  for (let j = 0; j <= segs; j++) {
+    const a = (j / segs) * Math.PI * 2, r = edgeRadiusAtChunk(sc, a);
+    const wx = sc.x + Math.cos(a) * r, wz = sc.z + Math.sin(a) * r;
+    pos.push(wx, -6, wz); colors.push(cLow.r * 0.7, cLow.g * 0.7, cLow.b * 0.7);
+  }
+  for (let j = 0; j < segs; j++) { const a = skirtTop+j, b = skirtTop+j+1, c = base+j, d = base+j+1; idx.push(a, b, c, c, b, d); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }));
+  mesh.receiveShadow = true; islandGroup.add(mesh);
+  const dirt = new THREE.Mesh(new THREE.CylinderGeometry(sc.r * 0.5, sc.r * 0.28, 6, 10), new THREE.MeshLambertMaterial({ color: t.dirt, flatShading: true }));
+  dirt.position.set(sc.x, -8, sc.z); islandGroup.add(dirt);
+}
+
+function spawnOnChunk(sc, type, t) {
+  for (let tries = 0; tries < 60; tries++) {
+    const a = Math.random() * Math.PI * 2, d = 1.5 + Math.random() * sc.r * 0.72;
+    const x = sc.x + Math.cos(a) * d, z = sc.z + Math.sin(a) * d;
+    if (!insideChunkXZ(sc, x, z, 1.2)) continue;
+    if (occupied.some(o => Math.hypot(x - o.x, z - o.z) < o.r + 0.9)) continue;
+    const gy = groundHeight(x, z);
+    if (type === 'star') {
+      const star = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x806000 }));
+      star.position.set(x, gy + 1.1, z); star.userData.baseY = star.position.y;
+      islandGroup.add(star); stars.push(star); occupied.push({ x, z, r: 0.9 });
+    } else if (type === 'coin') {
+      const coin = new THREE.Mesh(coinGeo, new THREE.MeshLambertMaterial({ color: 0xffc107, emissive: 0x5a4000 })); coin.rotation.x = Math.PI / 2;
+      coin.position.set(x, gy + 1.0, z); coin.userData.baseY = coin.position.y;
+      islandGroup.add(coin); coins.push(coin); occupied.push({ x, z, r: 0.8 });
+    } else if (type === 'tree') {
+      const tree = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.4, 6), new THREE.MeshLambertMaterial({ color: 0x7a4a26 })); trunk.position.y = 0.7;
+      const crown = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.4, 7), new THREE.MeshLambertMaterial({ color: t.deco, flatShading: true })); crown.position.y = 2.4;
+      tree.add(trunk, crown); tree.position.set(x, gy, z); tree.userData.r = 0.6;
+      islandGroup.add(tree); obstacles.push(tree); occupied.push({ x, z, r: 1.2 });
+    }
+    return;
+  }
+}
+
+function buildSubIsland(ox, oz, subR, t) {
+  const sc = { x: ox, z: oz, r: subR, edgeSegs: 20, edgeRadii: [], hills: [] };
+  const h1 = 0.08 + Math.random() * 0.18, p1 = Math.random() * 6.28;
+  const h2 = 0.05 + Math.random() * 0.12, p2 = Math.random() * 6.28;
+  for (let i = 0; i < sc.edgeSegs; i++) {
+    const a = (i / sc.edgeSegs) * Math.PI * 2;
+    sc.edgeRadii.push(subR * Math.max(0.55, 1 + h1 * Math.sin(a * 2 + p1) + h2 * Math.sin(a * 3 + p2) + (Math.random() - 0.5) * 0.06));
+  }
+  const hc = 1 + rint(0, 1);
+  for (let i = 0; i < hc; i++) {
+    const a = Math.random() * Math.PI * 2, d = 1.5 + Math.random() * subR * 0.42;
+    sc.hills.push({ x: ox + Math.cos(a) * d, z: oz + Math.sin(a) * d, r: 3 + Math.random() * 4, h: (Math.random() < 0.7 ? 1 : -0.5) * (1.5 + Math.random() * 2.5) });
+  }
+  hills.push(...sc.hills);
+  subChunks.push(sc);
+  buildTerrainChunk(sc, t);
+  const starCount = 3 + rint(0, 2);
+  for (let i = 0; i < starCount; i++) spawnOnChunk(sc, 'star', t);
+  for (let i = 0; i < 2 + rint(0, 2); i++) spawnOnChunk(sc, 'coin', t);
+  for (let i = 0; i < 1 + rint(0, 1); i++) spawnOnChunk(sc, 'tree', t);
 }
 
 function addVine(x, topY, z, t) {
@@ -444,20 +568,40 @@ function addPad(level) {
 }
 
 function addButton() {
-  const p = freeSpot(0.78, 1.6);
-  const gy = groundHeight(p.x, p.z), g = new THREE.Group();
+  const p = freeSpot(0.72, 3.0);
+  const gy = groundHeight(p.x, p.z);
+  const platH = 3.8, platR = 2.8;
+
+  // Raised platform
+  const platform = new THREE.Mesh(new THREE.CylinderGeometry(platR, platR * 1.1, platH, 10), new THREE.MeshLambertMaterial({ color: 0x4a5a8a, flatShading: true }));
+  platform.position.set(p.x, gy + platH / 2, p.z); platform.castShadow = true; islandGroup.add(platform);
+  const platTop = new THREE.Mesh(new THREE.CylinderGeometry(platR, platR, 0.2, 10), new THREE.MeshLambertMaterial({ color: 0x6a8acc, flatShading: true }));
+  platTop.position.set(p.x, gy + platH + 0.1, p.z); islandGroup.add(platTop);
+
+  // Items on top of platform
+  const platY = gy + platH + 0.2;
+  for (let i = 0; i < 4; i++) {
+    const ca = (i / 4) * Math.PI * 2;
+    const coin = new THREE.Mesh(coinGeo, new THREE.MeshLambertMaterial({ color: 0xffc107, emissive: 0x5a4000 })); coin.rotation.x = Math.PI / 2;
+    coin.position.set(p.x + Math.cos(ca) * 1.4, platY + 1.0, p.z + Math.sin(ca) * 1.4); coin.userData.baseY = coin.position.y;
+    islandGroup.add(coin); coins.push(coin);
+  }
+  const pStar = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x806000 }));
+  pStar.position.set(p.x, platY + 1.15, p.z); pStar.userData.baseY = pStar.position.y;
+  islandGroup.add(pStar); stars.push(pStar);
+  occupied.push({ x: p.x, z: p.z, r: platR + 1.0 });
+
+  // Button at the base, slightly offset from the platform edge
+  const btnX = p.x + platR + 1.5, btnZ = p.z;
+  const g = new THREE.Group();
   const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.25, 0.4, 18), new THREE.MeshLambertMaterial({ color: 0x2b3a8a, flatShading: true })); base.position.y = 0.2;
   const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.32, 18), new THREE.MeshLambertMaterial({ color: 0x5fa8ff, emissive: 0x12305f })); btn.position.y = 0.5;
   const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.9, 5), new THREE.MeshLambertMaterial({ color: 0xeaf4ff, emissive: 0x3a6cff, emissiveIntensity: 0.4 })); arrow.position.y = 1.4;
-  g.add(base, btn, arrow); g.position.set(p.x, gy, p.z);
-  g.userData = { btn, arrow, press: 0, r: 1.0, power: 21, cooldown: 0 };
+  g.add(base, btn, arrow);
+  g.position.set(btnX, groundHeight(btnX, btnZ), btnZ);
+  g.userData = { btn, arrow, press: 0, r: 1.1, cooldown: 0, platPos: { x: p.x, z: p.z, y: platY } };
   islandGroup.add(g); buttons.push(g);
-  // Bonus-Münzen als Belohnung über dem Knopf (nur per Lift erreichbar)
-  for (let i = 0; i < 3; i++) {
-    const coin = new THREE.Mesh(coinGeo, new THREE.MeshLambertMaterial({ color: 0xffc107, emissive: 0x5a4000 })); coin.rotation.x = Math.PI / 2;
-    coin.position.set(p.x, gy + 3.2 + i * 1.4, p.z); coin.userData.baseY = coin.position.y;
-    islandGroup.add(coin); coins.push(coin);
-  }
+  occupied.push({ x: btnX, z: btnZ, r: 1.4 });
 }
 
 function spawnEnemy(kind, level) {
@@ -504,15 +648,15 @@ function makeGoal() {
 const player = new THREE.Group(), rig = new THREE.Group(); player.add(rig);
 const legMeshes = []; let shieldFx, magnetFx;
 {
-  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xf5e6d3 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1, 0.9, 1.5), bodyMat); body.position.y = 0.85; body.castShadow = true;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.6), bodyMat); head.position.set(0, 1.6, 0.75); head.castShadow = true;
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
-  for (const sx of [-1, 1]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), eyeMat); eye.position.set(sx * 0.18, 1.7, 1.06); rig.add(eye); }
-  const legMat = new THREE.MeshLambertMaterial({ color: 0xd9c4a9 });
-  for (const [lx, lz] of [[-0.32, 0.5], [0.32, 0.5], [-0.32, -0.5], [0.32, -0.5]]) {
-    const pivot = new THREE.Group(); pivot.position.set(lx, 0.5, lz);
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.5, 0.25), legMat); leg.position.y = -0.25; pivot.add(leg);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xf0c070 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.4), bodyMat); body.position.y = 0.9; body.castShadow = true;
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.82, 0.82), bodyMat); head.position.set(0, 1.82, 0.3); head.castShadow = true;
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  for (const sx of [-1, 1]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), eyeMat); eye.position.set(sx * 0.22, 1.88, 0.72); rig.add(eye); }
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x5a8aff });
+  for (const [lx, lz] of [[-0.36, 0.38], [0.36, 0.38], [-0.36, -0.38], [0.36, -0.38]]) {
+    const pivot = new THREE.Group(); pivot.position.set(lx, 0.45, lz);
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.55, 0.32), legMat); leg.position.y = -0.27; pivot.add(leg);
     rig.add(pivot); legMeshes.push(pivot);
   }
   rig.add(body, head);
@@ -672,8 +816,19 @@ function step(dt) {
   // --- Sprungfedern ---
   if (state.grounded) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power); Sound.boing(); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
 
-  // --- Lift-Knopf ---
-  if (state.grounded) for (const bt of buttons) { if (bt.userData.cooldown <= 0 && Math.hypot(state.pos.x - bt.position.x, state.pos.y - bt.position.z) < bt.userData.r) { bt.userData.press = 1; bt.userData.cooldown = 1.5; state.vel.multiplyScalar(0.2); launch(bt.userData.power); Sound.lift(); burst(bt.position.x, bt.position.y + 0.6, bt.position.z, 0x5fa8ff, 16, 7); showToast('🔼 Hoch geht’s!'); break; } }
+  // --- Lift-Knopf (teleportiert auf Plattform) ---
+  if (state.grounded) for (const bt of buttons) {
+    if (bt.userData.cooldown <= 0 && Math.hypot(state.pos.x - bt.position.x, state.pos.y - bt.position.z) < bt.userData.r) {
+      bt.userData.press = 1; bt.userData.cooldown = 3.0;
+      const pp = bt.userData.platPos;
+      burst(state.pos.x, state.y + 0.8, state.pos.y, 0x5fa8ff, 18, 7);
+      state.pos.set(pp.x, pp.z); state.y = pp.y; state.vy = 1.5;
+      state.vel.set(0, 0); state.grounded = true;
+      state.invincibleUntil = performance.now() + 500;
+      burst(pp.x, pp.y + 0.5, pp.z, 0x5fa8ff, 14, 5);
+      Sound.lift(); showToast('🔼 Plattform erreicht!'); break;
+    }
+  }
   for (const bt of buttons) if (bt.userData.cooldown > 0) bt.userData.cooldown -= dt;
 
   // --- Vertikal ---
@@ -798,7 +953,7 @@ function animate() {
   rig.scale.set(sx, sy, sx); rig.rotation.x = state.leanX; rig.rotation.z = state.leanZ; rig.position.y = moving ? Math.abs(Math.sin(state.animPhase)) * 0.12 : 0;
 
   const wp = new THREE.Vector3(); player.getWorldPosition(wp); const sh = state.shake;
-  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 16 + (Math.random() - 0.5) * sh, wp.z + 14), 0.1);
+  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 22 + (Math.random() - 0.5) * sh, wp.z + 9), 0.1);
   camera.lookAt(wp.x, Math.max(wp.y, -4) + 1, wp.z);
   renderer.render(scene, camera);
 }
