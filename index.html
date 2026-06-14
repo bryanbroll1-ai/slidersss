@@ -95,12 +95,12 @@ scene.add(cloudGroup);
 //  Themes
 // ===================================================================
 const THEMES = [
-  { name: 'Wiese',  sky: 0x87ceeb, sea: 0x2d7fc1, fog: 0x87ceeb, ground: 0x6abe4f, low: 0x4f9e3a, dirt: 0x8a5a33, deco: 0x2e8b3d, rock: 0x8d8d8d, amb: 0xbfd8ff },
-  { name: 'Wüste',  sky: 0xffd9a0, sea: 0x2f86c5, fog: 0xffe6c0, ground: 0xe0c068, low: 0xc8a050, dirt: 0xb08040, deco: 0x3fae5a, rock: 0xc2a070, amb: 0xffe6c8 },
-  { name: 'Schnee', sky: 0xcfe8ff, sea: 0x3a6ea5, fog: 0xdfeeff, ground: 0xeaf4ff, low: 0xc9dcec, dirt: 0x9fb0c0, deco: 0x3a7d4a, rock: 0xb9c6d4, amb: 0xe8f2ff },
-  { name: 'Vulkan', sky: 0x3a2a30, sea: 0xd2401a, fog: 0x4a2a26, ground: 0x5a4a45, low: 0x3a2e2a, dirt: 0x33211e, deco: 0x7a3a2a, rock: 0x3a3030, amb: 0xff9060 },
-  { name: 'Candy',  sky: 0xffd6ef, sea: 0x8a5ad0, fog: 0xffd6ef, ground: 0xff9ec7, low: 0xe07ba8, dirt: 0xc46a9a, deco: 0xff6f9c, rock: 0xd98cc0, amb: 0xffd6ef },
-  { name: 'Himmel', sky: 0xbfe6ff, sea: 0x6fa8d8, fog: 0xcfeaff, ground: 0xa6e0ff, low: 0x84c4e6, dirt: 0x88bcd8, deco: 0x6fc7e0, rock: 0x9fd0e8, amb: 0xdcf2ff },
+  { name: 'Wiese',  sky: 0x88ddff, sea: 0x2d7fc1, fog: 0x99e8ff, ground: 0x44cc22, low: 0x33aa14, dirt: 0x7a5025, deco: 0x22aa00, rock: 0x6878b0, amb: 0xb8e4ff, path: 0xe8a040, fence: 0x5566aa },
+  { name: 'Wüste',  sky: 0xffd9a0, sea: 0x2f86c5, fog: 0xffe6c0, ground: 0xe0c068, low: 0xc8a050, dirt: 0xb08040, deco: 0x3fae5a, rock: 0xc2a070, amb: 0xffe6c8, path: 0xd4883a, fence: 0x8a6a3a },
+  { name: 'Schnee', sky: 0xcfe8ff, sea: 0x3a6ea5, fog: 0xdfeeff, ground: 0xeaf4ff, low: 0xc9dcec, dirt: 0x9fb0c0, deco: 0x3a7d4a, rock: 0xb9c6d4, amb: 0xe8f2ff, path: 0xd0c0a8, fence: 0x8899cc },
+  { name: 'Vulkan', sky: 0x3a2a30, sea: 0xd2401a, fog: 0x4a2a26, ground: 0x5a4a45, low: 0x3a2e2a, dirt: 0x33211e, deco: 0x7a3a2a, rock: 0x3a3030, amb: 0xff9060, path: 0xaa4422, fence: 0x664433 },
+  { name: 'Candy',  sky: 0xffd6ef, sea: 0x8a5ad0, fog: 0xffd6ef, ground: 0xff9ec7, low: 0xe07ba8, dirt: 0xc46a9a, deco: 0xff6f9c, rock: 0xd98cc0, amb: 0xffd6ef, path: 0xffcc88, fence: 0xcc88ff },
+  { name: 'Himmel', sky: 0xbfe6ff, sea: 0x6fa8d8, fog: 0xcfeaff, ground: 0xa6e0ff, low: 0x84c4e6, dirt: 0x88bcd8, deco: 0x6fc7e0, rock: 0x9fd0e8, amb: 0xdcf2ff, path: 0xffeebb, fence: 0x99ccff },
 ];
 function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
 function applyTheme(t) { scene.background.setHex(t.sky); scene.fog.color.setHex(t.fog); seaMat.color.setHex(t.sea); ambient.color.setHex(t.amb); }
@@ -116,6 +116,7 @@ let islandGroup = null;
 let edgeRadii = [], edgeSegs = 28;
 let hills = [];
 let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [];
+let pathPts = [];
 let goal = null;
 const occupied = [];              // belegte Kreise -> verhindert Überlappung
 const avoid = [];                 // Zonen, die Spawns komplett meiden
@@ -145,6 +146,28 @@ function edgeRadiusAtChunk(sc, a) {
 function insideChunkXZ(sc, x, z, margin = 0) {
   const lx = x - sc.x, lz = z - sc.z, ld = Math.hypot(lx, lz);
   return ld < 0.001 || ld < edgeRadiusAtChunk(sc, Math.atan2(lz, lx)) - margin;
+}
+function generatePath() {
+  pathPts = [new THREE.Vector2(0, 0)];
+  let angle = Math.random() * Math.PI * 2;
+  for (let i = 0; i < 12; i++) {
+    const last = pathPts[pathPts.length - 1];
+    angle += (Math.random() - 0.5) * 1.1;
+    const step = 4 + Math.random() * 5;
+    const nx = last.x + Math.cos(angle) * step, nz = last.y + Math.sin(angle) * step;
+    if (!insideIsland(nx, nz, 3.5)) { angle += Math.PI * 0.55; continue; }
+    pathPts.push(new THREE.Vector2(nx, nz));
+  }
+}
+function distToPath(x, z) {
+  let minD = Infinity;
+  for (let i = 0; i < pathPts.length - 1; i++) {
+    const ax = pathPts[i].x, az = pathPts[i].y, bx = pathPts[i+1].x, bz = pathPts[i+1].y;
+    const dx = bx-ax, dz = bz-az, l2 = dx*dx+dz*dz;
+    const tt = l2 < 0.001 ? 0 : Math.max(0, Math.min(1, ((x-ax)*dx+(z-az)*dz)/l2));
+    minD = Math.min(minD, Math.hypot(x-ax-dx*tt, z-az-dz*tt));
+  }
+  return minD;
 }
 function insideIsland(x, z, margin = 0) {
   const d = Math.hypot(x, z);
@@ -224,6 +247,8 @@ function freeSpot(maxFrac, reserve, opts = {}) {
     if (avoid.some(v => Math.hypot(x - v.x, z - v.z) < v.r + reserve)) continue;
     if (occupied.some(o => Math.hypot(x - o.x, z - o.z) < o.r + reserve)) continue;
     if (opts.flat) { const g = groundGrad(x, z); if (Math.hypot(g.x, g.z) > 0.4) continue; }
+    if (opts.offPath && pathPts.length > 1 && distToPath(x, z) < 2.6) continue;
+    if (opts.preferPath && pathPts.length > 1 && tries < 220 && distToPath(x, z) > 3.2) continue;
     occupied.push({ x, z, r: reserve });
     return { x, z };
   }
@@ -270,59 +295,50 @@ function makeLevel(level) {
     hills.push({ x: Math.cos(a) * dist, z: Math.sin(a) * dist, r: 5 + Math.random() * 8, h: (up ? 1 : -1) * (2 + Math.random() * 3.5) });
   }
 
+  // Sandy path – generated before terrain so buildTerrain can colour it
+  generatePath();
   buildTerrain(t);
+  addFencePerimeter(t);
 
-  // --- Neben-Inseln (ab Level 2) ---
-  if (level >= 2) {
-    const subCount = level >= 4 ? 1 + rint(0, 1) : 1;
-    for (let i = 0; i < subCount; i++) {
-      const angle = Math.PI * (i * 1.3 + 0.4 + Math.random() * 0.6);
-      const dist = islandR + 14 + Math.random() * 6;
-      const subR = 6 + Math.random() * 5;
-      buildSubIsland(Math.cos(angle) * dist, Math.sin(angle) * dist, subR, t);
-    }
-  }
-
-  // --- Seilbrücken zwischen Inseln ---
-  const bridgeCount = subChunks.length;
-  for (let i = 0; i < bridgeCount; i++) buildBridge(t, i);
-
-  // --- Löcher ---
+  // --- Löcher (off-path) ---
   const holeCount = Math.max(0, level - 1) + rint(0, 1);
   for (let i = 0; i < holeCount; i++) {
     const r = 1.4 + Math.random();
-    const p = freeSpot(0.72, r + 1.6, { flat: true });
+    const p = freeSpot(0.72, r + 1.6, { flat: true, offPath: true });
     holes.push({ x: p.x, z: p.z, r });
     const hm = new THREE.Mesh(new THREE.CircleGeometry(r, 20), new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0.55, transparent: true }));
     hm.rotation.x = -Math.PI / 2; hm.position.set(p.x, groundHeight(p.x, p.z) + 0.05, p.z); islandGroup.add(hm);
   }
 
-  // --- Bäume (+ schwingende Lianen) ---
-  const treeCount = 6 + rint(0, 4);
+  // --- Bäume mit Kugelkrone (off-path) ---
+  const treeCount = 5 + rint(0, 4);
   for (let i = 0; i < treeCount; i++) {
-    const p = freeSpot(0.85, 1.1);
+    const p = freeSpot(0.85, 1.1, { offPath: true });
     const tree = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.4, 6), new THREE.MeshLambertMaterial({ color: 0x7a4a26 })); trunk.position.y = 0.7;
-    const crown = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.4, 7), new THREE.MeshLambertMaterial({ color: t.deco, flatShading: true })); crown.position.y = 2.4; crown.castShadow = true;
-    tree.add(trunk, crown);
-    tree.position.set(p.x, groundHeight(p.x, p.z), p.z); tree.userData.r = 0.55;
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 1.3, 6), new THREE.MeshLambertMaterial({ color: 0x7a4a26 })); trunk.position.y = 0.65;
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.85 + Math.random() * 0.45, 8, 7), new THREE.MeshLambertMaterial({ color: t.deco, flatShading: true })); crown.position.y = 1.85; crown.castShadow = true;
+    tree.add(trunk, crown); tree.position.set(p.x, groundHeight(p.x, p.z), p.z); tree.userData.r = 0.6;
     islandGroup.add(tree); obstacles.push(tree);
-    if (Math.random() < 0.5) addVine(p.x, groundHeight(p.x, p.z) + 3.0, p.z, t);
+    if (Math.random() < 0.35) addVine(p.x, groundHeight(p.x, p.z) + 2.5, p.z, t);
   }
 
-  // --- Felsen ---
-  const rockCount = 2 + level + rint(0, 2);
-  for (let i = 0; i < rockCount; i++) {
-    const p = freeSpot(0.82, 1.3);
-    const rad = 0.8 + Math.random() * 0.7;
-    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(rad, 0), new THREE.MeshLambertMaterial({ color: t.rock, flatShading: true }));
-    rock.position.set(p.x, groundHeight(p.x, p.z) + rad * 0.7, p.z);
-    rock.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3); rock.castShadow = true; rock.userData.r = rad * 0.9;
-    islandGroup.add(rock); obstacles.push(rock);
+  // --- Felstürme (off-path, wie in Referenz: tall blue-grey stacks) ---
+  const rockTowerCount = 1 + level + rint(0, 2);
+  for (let i = 0; i < rockTowerCount; i++) addRockTower(freeSpot(0.82, 1.5, { offPath: true }), t);
+
+  // --- Stachelbüsche (off-path, pink/lila) ---
+  const bushCount = 2 + rint(0, level);
+  for (let i = 0; i < bushCount; i++) addSpikyBush(freeSpot(0.85, 1.2, { offPath: true }));
+
+  // --- Grashalme (dekorativ, off-path) ---
+  for (let i = 0; i < 12 + rint(0, 8); i++) {
+    const p = freeSpot(0.92, 0.3, { offPath: true });
+    addGrassTuft(p.x, p.z);
+    occupied.pop(); // Grashalme blockieren nichts
   }
 
-  // --- Sprungfedern ---
-  const padCount = level >= 2 ? 1 + Math.floor(level / 3) + rint(0, 1) : 0;
+  // --- Sprungfedern (hexagonal rot) ---
+  const padCount = level >= 2 ? 1 + Math.floor(level / 3) + rint(0, 1) : 1;
   for (let i = 0; i < padCount; i++) addPad(level);
 
   // --- Gegner ---
@@ -332,19 +348,19 @@ function makeLevel(level) {
   // --- Abrissbirnen ---
   if (level >= 3) for (let i = 0; i < Math.floor((level - 1) / 2); i++) addWreckingBall(level);
 
-  // --- Sterne (Pflicht) ---
+  // --- Sterne (bevorzugt auf dem Sandpfad) ---
   const starCount = 5 + level * 2 + rint(0, 2);
   for (let i = 0; i < starCount; i++) {
-    const p = freeSpot(0.9, 0.8);
+    const p = freeSpot(0.9, 0.8, { preferPath: true });
     const star = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x806000 }));
     star.position.set(p.x, groundHeight(p.x, p.z) + 1.1, p.z); star.castShadow = true; star.userData.baseY = star.position.y;
     islandGroup.add(star); stars.push(star);
   }
 
-  // --- Münzen ---
+  // --- Münzen (bevorzugt auf dem Sandpfad) ---
   const coinCount = 5 + level * 2;
   for (let i = 0; i < coinCount; i++) {
-    const p = freeSpot(0.92, 0.7);
+    const p = freeSpot(0.92, 0.7, { preferPath: true });
     const coin = new THREE.Mesh(coinGeo, new THREE.MeshLambertMaterial({ color: 0xffc107, emissive: 0x5a4000 })); coin.rotation.x = Math.PI / 2;
     coin.position.set(p.x, groundHeight(p.x, p.z) + 1.0, p.z); coin.userData.baseY = coin.position.y;
     islandGroup.add(coin); coins.push(coin);
@@ -371,7 +387,10 @@ function buildTerrain(t) {
     for (let j = 0; j <= segs; j++) {
       const a = (j / segs) * Math.PI * 2, r = edgeRadiusAt(a) * frac, x = Math.cos(a) * r, z = Math.sin(a) * r, y = groundHeight(x, z);
       pos.push(x, y, z);
-      const c = cTop.clone().lerp(cLow, THREE.MathUtils.clamp(0.5 - y * 0.12, 0, 1));
+      const cHill = cTop.clone().lerp(cLow, THREE.MathUtils.clamp(0.5 - y * 0.12, 0, 1));
+      const dp = pathPts.length > 1 ? distToPath(x, z) : 999;
+      const pb = THREE.MathUtils.clamp(1 - (dp - 1.6) / 1.4, 0, 1);
+      const c = pb > 0 ? cHill.clone().lerp(new THREE.Color(t.path || 0xe8a040), pb) : cHill;
       colors.push(c.r, c.g, c.b);
     }
   }
@@ -580,13 +599,84 @@ function addWreckingBall(level) {
 }
 
 function addPad(level) {
-  const p = freeSpot(0.85, 1.4);
+  const p = freeSpot(0.85, 1.4, { flat: true });
   const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.1, 0.3, 16), new THREE.MeshLambertMaterial({ color: 0x2f8f4f, flatShading: true })); base.position.y = 0.15;
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 16), new THREE.MeshLambertMaterial({ color: 0x55e07a, emissive: 0x144a22 })); top.position.y = 0.4;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.45, 0.28, 6), new THREE.MeshLambertMaterial({ color: 0xaa1111, flatShading: true })); base.position.y = 0.14;
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.18, 6), new THREE.MeshLambertMaterial({ color: 0xff3333, emissive: 0x660000 })); top.position.y = 0.38;
   g.add(base, top); g.position.set(p.x, groundHeight(p.x, p.z), p.z);
-  g.userData = { top, squash: 0, r: 1.0, power: 11 + level * 0.4 };
+  g.userData = { top, squash: 0, r: 1.1, power: 11 + level * 0.4 };
   islandGroup.add(g); pads.push(g);
+}
+
+function addRockTower(p, t) {
+  const gy = groundHeight(p.x, p.z);
+  const group = new THREE.Group();
+  const h = 3.5 + Math.random() * 4.5, segs = 2 + rint(0, 1);
+  const mat = new THREE.MeshLambertMaterial({ color: t.rock, flatShading: true });
+  for (let i = 0; i < segs; i++) {
+    const sh = h / segs, rw = (0.85 + Math.random() * 0.5) * (1 - i * 0.18);
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(rw * 2, sh, rw * 1.7), mat);
+    seg.position.y = i * sh + sh / 2; seg.rotation.y = Math.random() * Math.PI / 3;
+    seg.castShadow = true; group.add(seg);
+  }
+  group.position.set(p.x, gy, p.z); group.userData.r = 1.1;
+  islandGroup.add(group); obstacles.push(group);
+  occupied.push({ x: p.x, z: p.z, r: 1.5 });
+}
+
+function addSpikyBush(p) {
+  const gy = groundHeight(p.x, p.z);
+  const group = new THREE.Group();
+  const spikeColors = [0xcc44aa, 0xdd66cc, 0xaa2299, 0xff55bb];
+  const spikeCount = 5 + rint(0, 4);
+  for (let i = 0; i < spikeCount; i++) {
+    const mat = new THREE.MeshLambertMaterial({ color: spikeColors[i % spikeColors.length], flatShading: true });
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.2 + Math.random() * 0.16, 1.0 + Math.random() * 0.8, 5), mat);
+    spike.position.set((Math.random()-0.5)*1.0, 0.08, (Math.random()-0.5)*1.0);
+    spike.rotation.set((Math.random()-0.5)*1.5, Math.random()*Math.PI*2, (Math.random()-0.5)*1.5);
+    spike.castShadow = true; group.add(spike);
+  }
+  group.position.set(p.x, gy, p.z); group.userData.r = 0.95;
+  islandGroup.add(group); obstacles.push(group);
+  occupied.push({ x: p.x, z: p.z, r: 1.3 });
+}
+
+function addGrassTuft(x, z) {
+  const gy = groundHeight(x, z);
+  const group = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color: 0x228800, flatShading: true });
+  const n = 3 + rint(0, 3);
+  for (let i = 0; i < n; i++) {
+    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.055 + Math.random()*0.04, 0.38 + Math.random()*0.38, 4), mat);
+    blade.position.set((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.5);
+    blade.rotation.set((Math.random()-0.5)*0.55, Math.random()*Math.PI*2, (Math.random()-0.5)*0.55);
+    group.add(blade);
+  }
+  group.position.set(x, gy, z); islandGroup.add(group);
+}
+
+function addFencePerimeter(t) {
+  const fMat = new THREE.MeshLambertMaterial({ color: t.fence || 0x5566aa, flatShading: true });
+  const count = edgeSegs * 2;
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2, r = edgeRadiusAt(a) - 0.55;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r, gy = groundHeight(x, z);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.0, 0.2), fMat);
+    post.position.set(x, gy + 0.3, z); islandGroup.add(post);
+    if (i > 0) {
+      const pa = ((i-1)/count)*Math.PI*2, pr = edgeRadiusAt(pa) - 0.55;
+      const px = Math.cos(pa)*pr, pz = Math.sin(pa)*pr;
+      const len = Math.hypot(x-px, z-pz);
+      if (len < 2.8) {
+        const midX = (x+px)/2, midZ = (z+pz)/2, ang = -Math.atan2(z-pz, x-px);
+        for (const oy of [0.72, 0.3]) {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.1), fMat);
+          rail.position.set(midX, groundHeight(midX, midZ) + oy, midZ);
+          rail.rotation.y = ang; islandGroup.add(rail);
+        }
+      }
+    }
+  }
 }
 
 function spawnEnemy(kind, level) {
