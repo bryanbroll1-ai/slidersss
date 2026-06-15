@@ -72,6 +72,36 @@
   .charCard .swatch{width:34px;height:8px;border-radius:4px;margin:8px auto 0;box-shadow:0 2px 6px rgba(0,0,0,0.5);}
   #shopClose{margin-top:20px;font-size:17px;font-weight:800;padding:12px 48px;border:none;border-radius:28px;background:linear-gradient(135deg,#ffb627 0%,#ff6a00 100%);color:#3a1800;cursor:pointer;box-shadow:0 4px 18px rgba(255,140,0,0.45);transition:transform .1s;}
   #shopClose:hover{transform:translateY(-2px);}
+
+  /* ── Combo timer bar ── */
+  #comboBar{position:fixed;top:46px;left:50%;transform:translateX(-50%);width:120px;max-width:40vw;height:5px;border-radius:3px;background:rgba(0,0,0,0.4);overflow:hidden;z-index:10;opacity:0;transition:opacity .2s;pointer-events:none;}
+  #comboBar.vis{opacity:1;}
+  #comboFill{height:100%;width:100%;background:linear-gradient(90deg,#ff9d45,#ffd23f);transform-origin:left;}
+
+  /* ── Dash button (bottom-right) ── */
+  #dashBtn{position:fixed;bottom:16px;right:14px;width:62px;height:62px;border-radius:50%;border:none;z-index:10;cursor:pointer;background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.18);color:#fff;font-size:26px;backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,0.45);transition:transform .1s;overflow:hidden;}
+  #dashBtn:active{transform:scale(0.9);}
+  #dashBtn.ready{border-color:#7fe0ff;box-shadow:0 0 18px rgba(80,200,255,0.6),0 4px 16px rgba(0,0,0,0.45);}
+  #dashBtn .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(120,200,255,0.28);transform-origin:bottom;}
+  #pauseBtn{bottom:16px;right:86px;}
+
+  /* ── Pause & Settings overlays ── */
+  #pause,#settings{position:fixed;inset:0;z-index:26;background:rgba(6,12,22,0.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
+  #pause.open,#settings.open{display:flex;}
+  #pause h2,#settings h2{font-size:32px;margin:0 0 18px;letter-spacing:-.3px;}
+  .menuBtn{font-size:19px;font-weight:800;padding:13px 40px;margin:7px;border:none;border-radius:28px;background:linear-gradient(135deg,#ffe040,#ff9500);color:#3a2000;cursor:pointer;box-shadow:0 5px 20px rgba(255,150,0,0.4);transition:transform .1s;min-width:230px;}
+  .menuBtn:hover{transform:translateY(-2px);}
+  .menuBtn.alt{background:linear-gradient(135deg,#7fd0ff,#4a90d8);color:#06243a;box-shadow:0 5px 20px rgba(80,160,220,0.4);}
+  .menuBtn.ghost{background:rgba(255,255,255,0.1);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,0.2);}
+  .setRow{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:min(420px,86vw);margin:10px 0;text-align:left;}
+  .setRow label{font-weight:800;font-size:15px;display:flex;justify-content:space-between;opacity:.92;}
+  .setRow input[type=range]{width:100%;accent-color:#ffd23f;height:26px;}
+  .segBtns{display:flex;gap:8px;}
+  .segBtns button{flex:1;padding:9px;border-radius:14px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;font-weight:800;cursor:pointer;font-size:14px;}
+  .segBtns button.on{background:#ffd23f;color:#3a2000;border-color:#ffd23f;}
+  #pauseStats{font-size:15px;opacity:.85;margin:4px 0 14px;line-height:1.7;}
+  .statGrid{display:inline-grid;grid-template-columns:auto auto;gap:4px 18px;text-align:left;}
+  .statGrid b{color:#ffd23f;}
 </style>
 </head>
 <body>
@@ -86,15 +116,33 @@
 </div>
 <button class="badge ctrlBtn" id="soundBtn">🔊</button>
 <button class="badge ctrlBtn" id="modeBtn">🌍 Welt sliden</button>
+<button class="badge ctrlBtn" id="pauseBtn">⏸</button>
+<button id="dashBtn"><span class="cd"></span>💨</button>
+<div id="comboBar"><div id="comboFill"></div></div>
 <div id="toast"></div>
 <div id="overlay">
   <h1>🏔️ Land Sliders 3D</h1>
-  <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt. Am PC: <b>WASD / Pfeile</b>, Leertaste stoppt.</p>
+  <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt, <b>Doppeltippen</b> 💨 dasht. Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b> stoppt, <b>Shift</b> dasht, <b>P/Esc</b> pausiert.</p>
   <p>Sammle alle ⭐ und löse das 🔢 Zahlen-Rätsel — drücke die Knöpfe in der Reihenfolge 1·2·3. Bei falscher Reihenfolge explodiert der Knopf und stößt dich zurück! Erst dann öffnet sich das 🌀 Portal. Nutze 🟢 Sprungfedern, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser, 🔨 Abrissbirne und 🌋 Lava!</p>
   <p>Sammle 🪙 Münzen (auch auf den Neben-Inseln über die 🌉 Hängebrücke) und schalte im 🎁 Lootbox-Shop neue Charaktere mit eigenen Fähigkeiten frei!</p>
   <p id="hiLine"></p>
   <button id="startBtn">Spielen</button>
   <button id="shopBtn">🎁 Charaktere &amp; Lootbox</button>
+  <button id="settingsBtn">⚙️ Einstellungen</button>
+</div>
+<div id="pause">
+  <h2>⏸ Pause</h2>
+  <div id="pauseStats"></div>
+  <button class="menuBtn" id="resumeBtn">▶ Weiter</button>
+  <button class="menuBtn alt" id="pauseSettingsBtn">⚙️ Einstellungen</button>
+  <button class="menuBtn ghost" id="quitBtn">🏠 Zum Menü</button>
+</div>
+<div id="settings">
+  <h2>⚙️ Einstellungen</h2>
+  <div class="setRow"><label>Wisch-Empfindlichkeit <span id="sensVal">1.0×</span></label><input type="range" id="sensSlider" min="0.5" max="1.8" step="0.05" value="1"></div>
+  <div class="setRow"><label>Kamera-Abstand <span id="camVal">Normal</span></label><input type="range" id="camSlider" min="0.8" max="1.4" step="0.05" value="1"></div>
+  <div class="setRow"><label>Grafik-Effekte</label><div class="segBtns" id="qualitySeg"><button data-q="high" class="on">Hoch</button><button data-q="low">Sparsam</button></div></div>
+  <button class="menuBtn" id="settingsCloseBtn">✓ Fertig</button>
 </div>
 <div id="shop">
   <h2>🎁 Charaktere</h2>
@@ -205,8 +253,9 @@ let islandR = 22;                 // pro Level zufällig
 let islandGroup = null;
 let edgeRadii = [], edgeSegs = 28;
 let hills = [];
-let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [], floorHaz = [];
+let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [], floorHaz = [], gems = [];
 let pathPts = [];
+let curTheme = null;
 let goal = null;
 const occupied = [];              // belegte Kreise -> verhindert Überlappung
 const avoid = [];                 // Zonen, die Spawns komplett meiden
@@ -379,10 +428,11 @@ function makeCoinMesh(t) {
 }
 
 function makeLevel(level) {
-  const t = themeFor(level); applyTheme(t);
+  const t = themeFor(level); curTheme = t; applyTheme(t);
+  if (typeof setupAmbient === 'function') setupAmbient(t);
   if (islandGroup) world.remove(islandGroup);
   islandGroup = new THREE.Group();
-  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = [];
+  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = [];
   goal = null; occupied.length = 0; avoid.length = 0;
   if (state) { state.puzzleSolved = false; state.puzzleStep = 0; }
 
@@ -489,6 +539,9 @@ function makeLevel(level) {
 
   if (level >= 2) spawnPowerup('shield');
   if (level >= 3) spawnPowerup('magnet');
+
+  // --- Seltener Edelstein (große Beute, lohnt den Umweg) ---
+  if (Math.random() < 0.6) addGem(t);
 
   // --- Ziel-Portal ---
   const gp = freeSpot(0.55, 2.0);
@@ -984,6 +1037,60 @@ function spawnPowerup(kind) {
   const p = freeSpot(0.85, 1.2); g.position.set(p.x, groundHeight(p.x, p.z), p.z); g.userData = { kind, orb }; islandGroup.add(g); powerups.push(g);
 }
 
+// --- Seltener Edelstein (großer Münz- & Punkte-Bonus) ---
+function addGem(t) {
+  const g = new THREE.Group();
+  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0), new THREE.MeshLambertMaterial({ color: 0x59f0ff, emissive: 0x0a6a88, emissiveIntensity: 0.6, flatShading: true }));
+  gem.position.y = 1.25; g.add(gem);
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.05, 6, 18), new THREE.MeshBasicMaterial({ color: 0x9ff4ff, transparent: true, opacity: 0.6 }));
+  halo.rotation.x = Math.PI / 2; halo.position.y = 1.25; g.add(halo);
+  const p = freeSpot(0.92, 1.1, { offPath: true });
+  const gy = groundHeight(p.x, p.z);
+  g.position.set(p.x, gy, p.z); g.userData = { gem, halo, baseY: gy + 1.25 };
+  islandGroup.add(g); gems.push(g);
+}
+
+// ===================================================================
+//  Atmosphäre: themenpassende Umgebungspartikel (Schnee, Glut, Blüten …)
+// ===================================================================
+let ambientGroup = null, ambientParticles = [];
+const ambGeoBall = new THREE.SphereGeometry(0.15, 6, 5);
+const ambGeoFlat = new THREE.BoxGeometry(0.32, 0.05, 0.32);
+function setupAmbient(t) {
+  if (ambientGroup) { scene.remove(ambientGroup); }
+  ambientGroup = new THREE.Group(); scene.add(ambientGroup); ambientParticles = [];
+  const n = settings.quality === 'low' ? 20 : 60;
+  let color = 0xaef07a, geo = ambGeoFlat, rise = false, flat = true, op = 0.8;
+  switch (t.style) {
+    case 'snow':    color = 0xffffff; geo = ambGeoBall; flat = false; op = 0.9; break;
+    case 'volcano': color = 0xff6a22; geo = ambGeoBall; flat = false; rise = true; op = 0.95; break;
+    case 'candy':   color = 0xff9ed0; geo = ambGeoFlat; flat = true; op = 0.85; break;
+    case 'desert':  color = 0xe8cf90; geo = ambGeoBall; flat = false; op = 0.5; break;
+    case 'sky':     color = 0xfff2b0; geo = ambGeoBall; flat = false; op = 0.8; break;
+    default:        color = 0xbaf07a; geo = ambGeoFlat; flat = true; op = 0.8; break;  // Wiese: Pollen/Blätter
+  }
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op }));
+    m.position.set((Math.random() - 0.5) * 72, Math.random() * 24 - 1, (Math.random() - 0.5) * 72);
+    m.userData = { vy: (rise ? 1 : -1) * (0.5 + Math.random() * 1.3), sw: Math.random() * 6.28, ss: 0.4 + Math.random() * 0.9, flat, spin: (Math.random() - 0.5) * 2.4 };
+    ambientGroup.add(m); ambientParticles.push(m);
+  }
+  ambientGroup.userData.rise = rise;
+}
+function updateAmbient(dt) {
+  if (!ambientGroup) return;
+  const px = player.position.x, pz = player.position.z, rise = ambientGroup.userData.rise;
+  for (const m of ambientParticles) {
+    const u = m.userData;
+    m.position.y += u.vy * dt; u.sw += dt * u.ss;
+    m.position.x += Math.sin(u.sw) * dt * 1.3; m.position.z += Math.cos(u.sw * 0.7) * dt * 1.1;
+    if (u.flat) { m.rotation.x += u.spin * dt; m.rotation.z += u.spin * 0.7 * dt; }
+    if (!rise && m.position.y < -2) m.position.y = 24; else if (rise && m.position.y > 24) m.position.y = -1.5;
+    if (m.position.x - px > 38) m.position.x -= 76; else if (m.position.x - px < -38) m.position.x += 76;
+    if (m.position.z - pz > 38) m.position.z -= 76; else if (m.position.z - pz < -38) m.position.z += 76;
+  }
+}
+
 function makeStarGeometry() {
   const shape = new THREE.Shape(); const outer = 0.7, inner = 0.3, points = 5;
   for (let i = 0; i < points * 2; i++) { const r = i % 2 === 0 ? outer : inner, a = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2; const x = Math.cos(a) * r, y = Math.sin(a) * r; i === 0 ? shape.moveTo(x, y) : shape.lineTo(x, y); }
@@ -1110,6 +1217,22 @@ function updateParticles(dt) {
   }
 }
 
+// --- Speed-Trail: verblassende Geister hinter der schnellen/dashenden Figur ---
+const trailGhosts = [], trailGeo = new THREE.SphereGeometry(0.62, 8, 6);
+function spawnTrailGhost(color, life = 0.32, op = 0.4) {
+  const m = new THREE.Mesh(trailGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op }));
+  m.position.set(player.position.x, state.y + 0.9, player.position.z);
+  m.scale.set(0.9, 1.05, 0.9); world.add(m);
+  trailGhosts.push({ mesh: m, life, max: life, op });
+}
+function updateTrail(dt) {
+  for (let i = trailGhosts.length - 1; i >= 0; i--) {
+    const g = trailGhosts[i]; g.life -= dt;
+    if (g.life <= 0) { world.remove(g.mesh); trailGhosts.splice(i, 1); continue; }
+    const k = g.life / g.max; g.mesh.material.opacity = g.op * k; g.mesh.scale.setScalar(0.62 * (0.6 + (1 - k) * 0.7));
+  }
+}
+
 // ===================================================================
 //  Audio
 // ===================================================================
@@ -1144,16 +1267,26 @@ const Sound = (() => {
 //  Zustand
 // ===================================================================
 const HISCORE_KEY = 'landsliders_hi';
+const settings = {
+  sens: +(localStorage.getItem('ls_sens') || 1),
+  camDist: +(localStorage.getItem('ls_camdist') || 1),
+  quality: localStorage.getItem('ls_quality') || 'high',
+};
+function saveSettings() { localStorage.setItem('ls_sens', settings.sens); localStorage.setItem('ls_camdist', settings.camDist); localStorage.setItem('ls_quality', settings.quality); }
+
 const state = {
-  running: false, level: 1, lives: 3, collected: 0, total: 0,
-  score: 0, hiscore: +(localStorage.getItem(HISCORE_KEY) || 0), combo: 1, comboTimer: 0,
+  running: false, paused: false, level: 1, lives: 3, collected: 0, total: 0,
+  score: 0, hiscore: +(localStorage.getItem(HISCORE_KEY) || 0), combo: 1, comboTimer: 0, comboMax: 1,
   coins: +(localStorage.getItem('landsliders_coins') || 0),
   character: localStorage.getItem('landsliders_char') || 'wuffel', trait: null,
   pos: new THREE.Vector2(0, 0), vel: new THREE.Vector2(0, 0), prevVel: new THREE.Vector2(0, 0),
   y: 0, vy: 0, grounded: true, invincibleUntil: 0, shield: false, magnetUntil: 0,
   animPhase: 0, landSquash: 0, leanX: 0, leanZ: 0, shake: 0,
   puzzleSolved: false, puzzleStep: 0, puzzleCdUntil: 0, coyoteUntil: 0,
+  dashUntil: 0, dashReadyAt: 0, dashDirX: 0, dashDirZ: 1,
+  runStars: 0, runCoins: 0, runStart: 0,
 };
+const DASH_CD = 1400, DASH_DUR = 220, DASH_SPEED = 42;
 function saveProgress() { localStorage.setItem('landsliders_coins', state.coins); localStorage.setItem('landsliders_char', state.character); localStorage.setItem('landsliders_unlocked', JSON.stringify([...unlocked])); }
 
 // ===================================================================
@@ -1163,7 +1296,7 @@ const MODES = { SLIDE_WORLD: -1, CONTROL_CHARACTER: 1 };
 let mode = MODES.SLIDE_WORLD;
 const SENSITIVITY = 1.0, MAX_SPEED = 25, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
 const AIR_FOLLOW = 9, KEY_ACCEL = 50, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;  // ground glide is 1:1 (sticky)
-const drag = { active: false, dx: 0, dy: 0, lastX: 0, lastY: 0, startX: 0, startY: 0, startT: 0, totalDist: 0, fvx: 0, fvy: 0, pid: -1 };
+const drag = { active: false, dx: 0, dy: 0, lastX: 0, lastY: 0, startX: 0, startY: 0, startT: 0, totalDist: 0, fvx: 0, fvy: 0, pid: -1, lastTapT: 0 };
 function px2world() { return 30 / Math.min(innerWidth, innerHeight); }
 
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -1181,12 +1314,23 @@ addEventListener('pointermove', e => {
 function endDrag(e) {
   if (!drag.active) return; drag.active = false;
   try { if (e && drag.pid >= 0) renderer.domElement.releasePointerCapture(drag.pid); } catch (_) {}
-  if (drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME) state.vel.set(0, 0);
-  else { state.vel.x = drag.fvx; state.vel.y = drag.fvy; }   // smooth flick momentum (not the noisy last frame)
+  const wasTap = drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME;
+  if (wasTap) {
+    state.vel.set(0, 0);
+    const nowT = performance.now();
+    if (nowT - drag.lastTapT < 320) tryDash();   // double-tap to dash
+    drag.lastTapT = nowT;
+  } else { state.vel.x = drag.fvx; state.vel.y = drag.fvy; }   // smooth flick momentum (not the noisy last frame)
 }
 addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag); addEventListener('lostpointercapture', endDrag);
 const keys = {};
-addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if (e.code === 'Space') { state.vel.set(0, 0); e.preventDefault(); } Sound.init(); });
+addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.code === 'Space') { state.vel.set(0, 0); e.preventDefault(); }
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') tryDash();
+  if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { if (state.running) setPause(!state.paused); }
+  Sound.init();
+});
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
 // ===================================================================
@@ -1262,14 +1406,48 @@ lootBtn.addEventListener('click', () => {
 });
 shopBtn.addEventListener('click', () => { Sound.init(); openShop(); });
 shopClose.addEventListener('click', closeShop);
+
+// --- Pause & Einstellungen & Dash UI ---------------------------------------
+const pauseEl = document.getElementById('pause'), settingsEl = document.getElementById('settings');
+const pauseBtn = document.getElementById('pauseBtn'), dashBtn = document.getElementById('dashBtn'), dashCd = dashBtn.querySelector('.cd');
+const comboBarEl = document.getElementById('comboBar'), comboFillEl = document.getElementById('comboFill');
+const sensSlider = document.getElementById('sensSlider'), camSlider = document.getElementById('camSlider'), sensVal = document.getElementById('sensVal'), camVal = document.getElementById('camVal');
+function fmtCam(v) { return v < 0.92 ? 'Nah' : v > 1.12 ? 'Weit' : 'Normal'; }
+function reflectSettings() { sensSlider.value = settings.sens; camSlider.value = settings.camDist; sensVal.textContent = (+settings.sens).toFixed(2) + '×'; camVal.textContent = fmtCam(settings.camDist); document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality)); }
+sensSlider.addEventListener('input', () => { settings.sens = +sensSlider.value; sensVal.textContent = settings.sens.toFixed(2) + '×'; saveSettings(); });
+camSlider.addEventListener('input', () => { settings.camDist = +camSlider.value; camVal.textContent = fmtCam(settings.camDist); saveSettings(); });
+document.querySelectorAll('#qualitySeg button').forEach(b => b.addEventListener('click', () => { settings.quality = b.dataset.q; reflectSettings(); saveSettings(); if (curTheme) setupAmbient(curTheme); }));
+function openSettings() { reflectSettings(); settingsEl.classList.add('open'); }
+function closeSettings() { settingsEl.classList.remove('open'); }
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('pauseSettingsBtn').addEventListener('click', openSettings);
+document.getElementById('settingsCloseBtn').addEventListener('click', closeSettings);
+function setPause(p) {
+  if (!state.running) return;
+  state.paused = p; pauseEl.classList.toggle('open', p);
+  if (p) {
+    const secs = Math.max(0, Math.round((performance.now() - state.runStart) / 1000));
+    document.getElementById('pauseStats').innerHTML = '<div class="statGrid"><span>🏆 Punkte</span><b>' + state.score + '</b><span>⭐ Sterne (Run)</span><b>' + state.runStars + '</b><span>🪙 Münzen (Run)</span><b>' + state.runCoins + '</b><span>🔥 Max-Combo</span><b>×' + state.comboMax + '</b><span>⏱ Zeit</span><b>' + secs + 's</b></div>';
+  }
+}
+function quitToMenu() { state.running = false; state.paused = false; pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.remove('hidden'); overlay.querySelector('h1').textContent = '🏔️ Land Sliders 3D'; saveProgress(); updateMenuInfo(); }
+pauseBtn.addEventListener('click', () => setPause(!state.paused));
+document.getElementById('resumeBtn').addEventListener('click', () => setPause(false));
+document.getElementById('quitBtn').addEventListener('click', quitToMenu);
+dashBtn.addEventListener('click', e => { e.preventDefault(); tryDash(); });
+
 function startLevel(level) { state.level = level; state.total = makeLevel(level); state.collected = 0; respawn(); if (state.trait === 'shield') state.shield = true; showToast('🏝️ ' + themeFor(level).name + ' — Level ' + level); updateHUD(); }
 function respawn() { state.pos.set(0, 0); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(0, 0); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(0, state.y, 0); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
-function startGame() { Sound.init(); applyCharacter(); state.lives = 3; state.score = 0; state.combo = 1; state.comboTimer = 0; state.shield = false; state.magnetUntil = 0; overlay.classList.add('hidden'); shop.classList.remove('open'); state.running = true; startLevel(1); }
+function startGame() { Sound.init(); applyCharacter(); state.lives = 3; state.score = 0; state.combo = 1; state.comboMax = 1; state.comboTimer = 0; state.shield = false; state.magnetUntil = 0; state.runStars = 0; state.runCoins = 0; state.runStart = performance.now(); state.dashUntil = 0; state.dashReadyAt = 0; state.paused = false; pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open'); state.running = true; startLevel(1); }
 function endGame(won) {
-  state.running = false; won ? Sound.win() : Sound.lose(); overlay.classList.remove('hidden');
+  state.running = false; state.paused = false; pauseEl.classList.remove('open');
+  won ? Sound.win() : Sound.lose(); overlay.classList.remove('hidden');
   overlay.querySelector('h1').textContent = won ? '🏆 Durchgespielt!' : '💧 Game Over';
-  overlay.querySelectorAll('p')[0].textContent = won ? 'Du hast alle Inseln gemeistert! Endpunktzahl: ' + state.score : 'Du bist auf ' + themeFor(state.level).name + ' (Level ' + state.level + ') gescheitert. Punkte: ' + state.score;
-  const ps = overlay.querySelectorAll('p'); for (let i = 1; i < ps.length - 1; i++) ps[i].textContent = '';
+  const secs = Math.max(0, Math.round((performance.now() - state.runStart) / 1000));
+  const ps = overlay.querySelectorAll('p');
+  ps[0].innerHTML = (won ? 'Du hast alle Inseln gemeistert!' : 'Gescheitert auf ' + themeFor(state.level).name + ' (Level ' + state.level + ').')
+    + '<br><span class="statGrid" style="margin-top:8px;font-size:15px"><span>🏆 Punkte</span><b>' + state.score + '</b><span>⭐ Sterne</span><b>' + state.runStars + '</b><span>🪙 Münzen</span><b>+' + state.runCoins + '</b><span>🔥 Max-Combo</span><b>×' + state.comboMax + '</b><span>⏱ Zeit</span><b>' + secs + 's</b></span>';
+  for (let i = 1; i < ps.length - 1; i++) ps[i].textContent = '';
   saveProgress(); updateMenuInfo(); startBtn.textContent = 'Nochmal spielen';
 }
 startBtn.addEventListener('click', startGame);
@@ -1279,11 +1457,28 @@ startBtn.addEventListener('click', startGame);
 // ===================================================================
 const clock = new THREE.Clock();
 function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.7; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }
-function bumpCombo() { state.comboTimer = 2.5; state.combo = Math.min(5, state.combo + 1); }
+function bumpCombo() { state.comboTimer = 2.5; state.combo = Math.min(9, state.combo + 1); state.comboMax = Math.max(state.comboMax, state.combo); }
 function launch(power) { state.grounded = false; state.vy = power; state.landSquash = 0; }
 
+// --- Dash: kurzer Geschwindigkeits-Schub mit Cooldown ---
+function tryDash() {
+  if (!state.running || state.paused) return;
+  const now = performance.now();
+  if (now < state.dashReadyAt) return;
+  let dx = state.vel.x, dz = state.vel.y, l = Math.hypot(dx, dz);
+  if (l < 1.2) { dx = state.dashDirX; dz = state.dashDirZ; l = Math.hypot(dx, dz) || 1; }
+  state.dashDirX = dx / l; state.dashDirZ = dz / l;
+  state.vel.x = state.dashDirX * DASH_SPEED; state.vel.y = state.dashDirZ * DASH_SPEED;
+  state.dashUntil = now + DASH_DUR; state.dashReadyAt = now + DASH_CD;
+  state.invincibleUntil = Math.max(state.invincibleUntil, now + DASH_DUR + 90);
+  state.shake = Math.max(state.shake, 0.28); Sound.whoosh();
+  showFlash(0x9fe0ff, 0.14, 0.2);
+  burst(player.position.x, state.y + 0.8, player.position.z, 0x9fe0ff, 16, 6);
+  for (let i = 0; i < 5; i++) spawnTrailGhost(0x9fe0ff, 0.4, 0.5);
+}
+
 function step(dt) {
-  if (!state.running) return;
+  if (!state.running || state.paused) return;
   if (state.comboTimer > 0) { state.comboTimer -= dt; if (state.comboTimer <= 0) { state.combo = 1; updateHUD(); } }
   state.prevVel.copy(state.vel);
 
@@ -1292,12 +1487,19 @@ function step(dt) {
   const maxSpeed = tr === 'speed' ? MAX_SPEED * 1.28 : MAX_SPEED;
   const friction = tr === 'speed' ? FRICTION * 0.7 : FRICTION;
   const grav = tr === 'float' ? GRAV * 0.72 : GRAV;
+  const dashing = performance.now() < state.dashUntil;
+
+  // remember last travel direction for a standing dash
+  if (state.vel.lengthSq() > 1) { const l = state.vel.length(); state.dashDirX = state.vel.x / l; state.dashDirZ = state.vel.y / l; }
 
   // --- Eingabe ---
   let inputActive = false;
-  if (drag.active) {
+  if (dashing) {
+    inputActive = true;  // dash dominates: hold the burst velocity, ignore drag/friction
+    state.vel.x = state.dashDirX * DASH_SPEED; state.vel.y = state.dashDirZ * DASH_SPEED;
+  } else if (drag.active) {
     inputActive = true;
-    const s = px2world() * SENSITIVITY * mode;
+    const s = px2world() * SENSITIVITY * settings.sens * mode;
     const tvx = (drag.dx * s) / dt, tvy = (drag.dy * s) / dt; drag.dx = drag.dy = 0;
     if (state.grounded) {
       // 1:1 sticky glide — pos += vel*dt moves exactly the finger delta -> zero lag, perfectly smooth
@@ -1318,7 +1520,7 @@ function step(dt) {
   const preSurf = surfaceAt(state.pos.x, state.pos.y);
   if (state.grounded && preSurf.type === 'ground') { const g = groundGrad(state.pos.x, state.pos.y); state.vel.x -= SLOPE_K * g.x * dt; state.vel.y -= SLOPE_K * g.z * dt; }
   if (!inputActive && state.grounded) { state.vel.multiplyScalar(Math.max(0, 1 - friction * dt)); if (state.vel.lengthSq() < 0.01 && preSurf.type !== 'bridge') state.vel.set(0, 0); }
-  if (state.vel.length() > maxSpeed) state.vel.setLength(maxSpeed);
+  if (!dashing && state.vel.length() > maxSpeed) state.vel.setLength(maxSpeed);  // dash may exceed the normal cap
 
   // --- Horizontal + Hindernis-Kollision ---
   const nx = state.pos.x + state.vel.x * dt, nz = state.pos.y + state.vel.y * dt; let blocked = false;
@@ -1457,7 +1659,7 @@ function step(dt) {
     const s = stars[i]; let dx = state.pos.x - s.position.x, dz = state.pos.y - s.position.z, dd = dx * dx + dz * dz;
     if (magnet && dd < 36) { s.position.x += dx * Math.min(1, 6 * dt); s.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - s.position.x; dz = state.pos.y - s.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) {
-      islandGroup.remove(s); stars.splice(i, 1); state.collected++; bumpCombo();
+      islandGroup.remove(s); stars.splice(i, 1); state.collected++; state.runStars++; bumpCombo();
       const pts = Math.round(100 * state.combo * (tr === 'score' ? 1.5 : 1)); addScore(pts);
       Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, 0xffd23f, 14, 5);
       showFloat('+' + pts, s.position.x, s.position.y + 1.4, s.position.z, '#ffd23f');
@@ -1472,10 +1674,22 @@ function step(dt) {
     if (magnet && dd < 36) { c.position.x += dx * Math.min(1, 6 * dt); c.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - c.position.x; dz = state.pos.y - c.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.3 && Math.abs(state.y + 1.0 - c.position.y) < 2.2) {
       islandGroup.remove(c); coins.splice(i, 1);
-      const got = tr === 'coin2' ? 2 : 1; state.coins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(25);
+      const got = tr === 'coin2' ? 2 : 1; state.coins += got; state.runCoins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(25);
       Sound.coin(); burst(c.position.x, c.position.y, c.position.z, 0xffc107, 8, 4);
       showFloat(got > 1 ? '+2 🪙' : '+1 🪙', c.position.x, c.position.y + 1.2, c.position.z, '#ffd040');
       updateHUD();
+    }
+  }
+  // --- Edelsteine (selten, großer Bonus) ---
+  for (let i = gems.length - 1; i >= 0; i--) {
+    const gm = gems[i];
+    if (Math.hypot(state.pos.x - gm.position.x, state.pos.y - gm.position.z) < 1.5 && Math.abs(state.y + 1 - gm.userData.baseY) < 2.4) {
+      islandGroup.remove(gm); gems.splice(i, 1);
+      const gain = tr === 'coin2' ? 40 : 20; state.coins += gain; state.runCoins += gain; localStorage.setItem('landsliders_coins', state.coins);
+      addScore(500); Sound.power(); showFlash(0x59f0ff, 0.32);
+      burst(gm.position.x, gm.userData.baseY, gm.position.z, 0x59f0ff, 26, 9);
+      showFloat('💎 +' + gain + ' 🪙', gm.position.x, gm.userData.baseY + 1.5, gm.position.z, '#7ff0ff');
+      showToast('💎 Edelstein! +500'); updateHUD();
     }
   }
   // --- Power-ups ---
@@ -1526,8 +1740,22 @@ function tryActivateGoal() { if (state.collected >= state.total && (state.puzzle
 // ===================================================================
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05); step(dt); updateParticles(dt);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (state.paused) { renderer.render(scene, camera); return; }   // freeze sim & visuals while paused
+  step(dt); updateParticles(dt); updateTrail(dt); updateAmbient(dt);
   const t = performance.now() / 1000;
+
+  // Speed trail + slide dust (gated by quality)
+  if (settings.quality !== 'low' && state.running) {
+    const sp = state.vel.length();
+    if (state.grounded && sp > 13 && Math.random() < 0.6) {
+      spawnTrailGhost(0xffffff, 0.26, 0.22);
+      const c = charById(state.character);
+      if (Math.random() < 0.5) burst(player.position.x - state.vel.x * 0.04, state.y + 0.15, player.position.z - state.vel.y * 0.04, 0xdddddd, 2, 2);
+    }
+  }
+  // Gems spin + bob
+  for (const gm of gems) { gm.userData.gem.rotation.y = t * 1.6; gm.userData.gem.rotation.x = t * 0.9; gm.userData.gem.position.y = 1.25 + Math.sin(t * 2.4 + gm.position.x) * 0.18; gm.userData.halo.rotation.z = t * 1.2; }
 
   for (let s = 0; s < 2; s++) for (const line of ropes) line.userData.rope.update(dt / 2);
   for (const line of ropes) { syncRopeLine(line); if (line.userData.leaf) line.userData.leaf.position.copy(line.userData.rope.pts[line.userData.rope.pts.length - 1].pos); }
@@ -1584,11 +1812,18 @@ function animate() {
   const sx = 1 - stretch * 0.5 + state.landSquash * 0.3, sy = 1 + stretch - state.landSquash * 0.5;
   rig.scale.set(sx, sy, sx); rig.rotation.x = state.leanX; rig.rotation.z = state.leanZ; rig.position.y = moving ? Math.abs(Math.sin(state.animPhase)) * 0.12 : 0;
 
+  // --- Combo bar + dash cooldown HUD ---
+  if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 2.5) + ')'; }
+  else comboBarEl.classList.remove('vis');
+  const cdFrac = THREE.MathUtils.clamp((state.dashReadyAt - performance.now()) / DASH_CD, 0, 1);
+  dashCd.style.height = (cdFrac * 100) + '%';
+  dashBtn.classList.toggle('ready', cdFrac <= 0);
+
   const wp = new THREE.Vector3(); player.getWorldPosition(wp);
   const sh = state.shake;
-  // Calm trailing camera: fixed FOV, no look-ahead, frame-rate-independent follow
-  const camFollow = Math.min(1, 8 * dt);
-  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 + (Math.random() - 0.5) * sh, wp.z + 15.5), camFollow);
+  // Calm trailing camera: fixed FOV, no look-ahead, frame-rate-independent follow; distance via settings
+  const camFollow = Math.min(1, 8 * dt), cd = settings.camDist;
+  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 * cd + (Math.random() - 0.5) * sh, wp.z + 15.5 * cd), camFollow);
   camera.lookAt(wp.x, Math.max(wp.y, -4) + 1.5, wp.z);
   // Player point light follows just above the character
   playerLight.position.set(wp.x, wp.y + 2.8, wp.z);
@@ -1596,10 +1831,11 @@ function animate() {
 }
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) clock.getDelta(); });  // drain accumulated time when tab is in background
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clock.getDelta(); if (state.running && !state.paused) setPause(true); } });  // auto-pause + drain time in background
 
 makeLevel(1);
 applyCharacter();
+reflectSettings();
 updateMenuInfo();
 updateHUD();
 animate();
