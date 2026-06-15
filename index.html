@@ -1161,15 +1161,29 @@ function saveProgress() { localStorage.setItem('landsliders_coins', state.coins)
 // ===================================================================
 const MODES = { SLIDE_WORLD: -1, CONTROL_CHARACTER: 1 };
 let mode = MODES.SLIDE_WORLD;
-const SENSITIVITY = 0.95, MAX_SPEED = 24, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
-const DRAG_FOLLOW = 18, AIR_FOLLOW = 5, KEY_ACCEL = 46, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;
-const drag = { active: false, dx: 0, dy: 0, startX: 0, startY: 0, startT: 0, totalDist: 0 };
+const SENSITIVITY = 1.0, MAX_SPEED = 25, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
+const DRAG_FOLLOW = 40, AIR_FOLLOW = 9, KEY_ACCEL = 50, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;
+const drag = { active: false, dx: 0, dy: 0, lastX: 0, lastY: 0, startX: 0, startY: 0, startT: 0, totalDist: 0, fvx: 0, fvy: 0, pid: -1 };
 function px2world() { return 30 / Math.min(innerWidth, innerHeight); }
 
-renderer.domElement.addEventListener('pointerdown', e => { Sound.init(); drag.active = true; drag.dx = drag.dy = drag.totalDist = 0; drag.startX = e.clientX; drag.startY = e.clientY; drag.startT = performance.now(); });
-addEventListener('pointermove', e => { if (!drag.active) return; drag.dx += e.movementX ?? 0; drag.dy += e.movementY ?? 0; drag.totalDist = Math.max(drag.totalDist, Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY)); });
-function endDrag() { if (!drag.active) return; drag.active = false; if (drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME) state.vel.set(0, 0); }
-addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag);
+renderer.domElement.addEventListener('pointerdown', e => {
+  Sound.init(); drag.active = true; drag.dx = drag.dy = drag.totalDist = 0; drag.fvx = drag.fvy = 0;
+  drag.lastX = drag.startX = e.clientX; drag.lastY = drag.startY = e.clientY; drag.startT = performance.now(); drag.pid = e.pointerId;
+  try { renderer.domElement.setPointerCapture(e.pointerId); } catch (_) {}
+});
+addEventListener('pointermove', e => {
+  if (!drag.active) return;
+  // clientX/Y deltas are reliable on touch (movementX is not); coalesced events keep high-rate input smooth
+  const evs = (e.getCoalescedEvents && e.getCoalescedEvents().length) ? e.getCoalescedEvents() : [e];
+  for (const ev of evs) { drag.dx += ev.clientX - drag.lastX; drag.dy += ev.clientY - drag.lastY; drag.lastX = ev.clientX; drag.lastY = ev.clientY; }
+  drag.totalDist = Math.max(drag.totalDist, Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY));
+}, { passive: true });
+function endDrag(e) {
+  if (!drag.active) return; drag.active = false;
+  try { if (e && drag.pid >= 0) renderer.domElement.releasePointerCapture(drag.pid); } catch (_) {}
+  if (drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME) state.vel.set(0, 0);
+}
+addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag); addEventListener('lostpointercapture', endDrag);
 const keys = {};
 addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if (e.code === 'Space') { state.vel.set(0, 0); e.preventDefault(); } Sound.init(); });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
@@ -1282,9 +1296,14 @@ function step(dt) {
   let inputActive = false;
   if (drag.active) {
     inputActive = true;
-    const s = px2world() * SENSITIVITY * mode, tx = (drag.dx * s) / dt, tz = (drag.dy * s) / dt; drag.dx = drag.dy = 0;
+    const s = px2world() * SENSITIVITY * mode;
+    const tx = (drag.dx * s) / dt, tz = (drag.dy * s) / dt; drag.dx = drag.dy = 0;
+    // light low-pass on the finger-velocity estimate removes 1px quantisation jitter
+    const fk = Math.min(1, 50 * dt);
+    drag.fvx += (tx - drag.fvx) * fk; drag.fvy += (tz - drag.fvy) * fk;
+    // snap world velocity to the finger quickly -> sticky, low-latency slide
     const follow = Math.min(1, (state.grounded ? DRAG_FOLLOW : AIR_FOLLOW) * dt);
-    state.vel.x += (tx - state.vel.x) * follow; state.vel.y += (tz - state.vel.y) * follow;
+    state.vel.x += (drag.fvx - state.vel.x) * follow; state.vel.y += (drag.fvy - state.vel.y) * follow;
   }
   const kx = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0);
   const kz = (keys['arrowdown'] || keys['s'] ? 1 : 0) - (keys['arrowup'] || keys['w'] ? 1 : 0);
@@ -1562,19 +1581,18 @@ function animate() {
 
   const wp = new THREE.Vector3(); player.getWorldPosition(wp);
   const sh = state.shake;
-  // Dynamic FOV
   const spd2 = state.vel.length();
-  const targetFov = 55 + Math.min(spd2, MAX_SPEED) * 0.38;
-  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, Math.min(1, 3.5 * dt));
+  // Gentle dynamic FOV — a hint of speed without warping the view
+  const targetFov = 55 + Math.min(spd2, MAX_SPEED) * 0.16;
+  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, Math.min(1, 5 * dt));
   camera.updateProjectionMatrix();
-  // Look-ahead: shift camera target in travel direction
-  const la = Math.min(spd2 * 0.42, 5.5);
-  const velN = spd2 > 0.5 ? state.vel.length() : 0;
-  const laX = wp.x + (velN > 0 ? (state.vel.x / spd2) * la : 0);
-  const laZ = wp.z + (velN > 0 ? (state.vel.y / spd2) * la : 0);
-  const camTargetX = laX * 0.5 + wp.x * 0.5, camTargetZ = laZ * 0.5 + wp.z * 0.5;
-  camera.position.lerp(new THREE.Vector3(laX * 0.35 + wp.x * 0.65 + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 + (Math.random() - 0.5) * sh, laZ * 0.35 + wp.z * 0.65 + 15.5), 0.12);
-  camera.lookAt(camTargetX, Math.max(wp.y, -4) + 1.5, camTargetZ);
+  // Subtle look-ahead so you can see slightly ahead while sliding
+  const la = Math.min(spd2 * 0.16, 2.4);
+  const laX = spd2 > 0.5 ? (state.vel.x / spd2) * la : 0;
+  const laZ = spd2 > 0.5 ? (state.vel.y / spd2) * la : 0;
+  const camFollow = Math.min(1, 10 * dt);   // frame-rate independent, snappier than before
+  camera.position.lerp(new THREE.Vector3(wp.x + laX + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 + (Math.random() - 0.5) * sh, wp.z + laZ + 15.5), camFollow);
+  camera.lookAt(wp.x + laX, Math.max(wp.y, -4) + 1.5, wp.z + laZ);
   // Player point light follows just above the character
   playerLight.position.set(wp.x, wp.y + 2.8, wp.z);
   renderer.render(scene, camera);
