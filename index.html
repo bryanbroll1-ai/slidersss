@@ -28,6 +28,7 @@
   <div class="badge" id="comboBadge">×1</div>
   <div class="badge" id="starBadge">⭐ 0/0</div>
   <div class="badge" id="levelBadge">Lvl 1</div>
+  <div class="badge" id="puzzleBadge" style="color:#7a3fae; display:none">🔢 0/0</div>
   <div class="badge" id="livesBadge">❤️❤️❤️</div>
 </div>
 <button class="badge ctrlBtn" id="soundBtn">🔊</button>
@@ -36,7 +37,7 @@
 <div id="overlay">
   <h1>🏔️ Land Sliders 3D</h1>
   <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt. Am PC: <b>WASD / Pfeile</b>, Leertaste stoppt.</p>
-  <p>Sammle alle ⭐, dann öffnet das 🌀 Portal. Nutze 🟢 Sprungfedern, balanciere über 🌉 Seilbrücken zwischen Inseln, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser und die 🔨 Abrissbirne!</p>
+  <p>Sammle alle ⭐ und löse das 🔢 Zahlen-Rätsel — drücke die Knöpfe in der Reihenfolge 1·2·3. Bei falscher Reihenfolge explodiert der Knopf und stößt dich zurück! Erst dann öffnet sich das 🌀 Portal. Nutze 🟢 Sprungfedern, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser, 🔨 Abrissbirne und 🌋 Lava!</p>
   <p id="hiLine"></p>
   <button id="startBtn">Spielen</button>
 </div>
@@ -95,12 +96,12 @@ scene.add(cloudGroup);
 //  Themes
 // ===================================================================
 const THEMES = [
-  { name: 'Wiese',  sky: 0x88ddff, sea: 0x2d7fc1, fog: 0x99e8ff, ground: 0x44cc22, low: 0x33aa14, dirt: 0x7a5025, deco: 0x22aa00, rock: 0x6878b0, amb: 0xb8e4ff, path: 0xe8a040, fence: 0x5566aa },
-  { name: 'Wüste',  sky: 0xffd9a0, sea: 0x2f86c5, fog: 0xffe6c0, ground: 0xe0c068, low: 0xc8a050, dirt: 0xb08040, deco: 0x3fae5a, rock: 0xc2a070, amb: 0xffe6c8, path: 0xd4883a, fence: 0x8a6a3a },
-  { name: 'Schnee', sky: 0xcfe8ff, sea: 0x3a6ea5, fog: 0xdfeeff, ground: 0xeaf4ff, low: 0xc9dcec, dirt: 0x9fb0c0, deco: 0x3a7d4a, rock: 0xb9c6d4, amb: 0xe8f2ff, path: 0xd0c0a8, fence: 0x8899cc },
-  { name: 'Vulkan', sky: 0x3a2a30, sea: 0xd2401a, fog: 0x4a2a26, ground: 0x5a4a45, low: 0x3a2e2a, dirt: 0x33211e, deco: 0x7a3a2a, rock: 0x3a3030, amb: 0xff9060, path: 0xaa4422, fence: 0x664433 },
-  { name: 'Candy',  sky: 0xffd6ef, sea: 0x8a5ad0, fog: 0xffd6ef, ground: 0xff9ec7, low: 0xe07ba8, dirt: 0xc46a9a, deco: 0xff6f9c, rock: 0xd98cc0, amb: 0xffd6ef, path: 0xffcc88, fence: 0xcc88ff },
-  { name: 'Himmel', sky: 0xbfe6ff, sea: 0x6fa8d8, fog: 0xcfeaff, ground: 0xa6e0ff, low: 0x84c4e6, dirt: 0x88bcd8, deco: 0x6fc7e0, rock: 0x9fd0e8, amb: 0xdcf2ff, path: 0xffeebb, fence: 0x99ccff },
+  { name: 'Wiese',  style: 'meadow',  sky: 0x88ddff, sea: 0x2d7fc1, fog: 0x99e8ff, ground: 0x44cc22, low: 0x33aa14, dirt: 0x7a5025, deco: 0x22aa00, rock: 0x6878b0, amb: 0xb8e4ff, path: 0xe8a040, fence: 0x5566aa },
+  { name: 'Wüste',  style: 'desert',  sky: 0xffd9a0, sea: 0x2f86c5, fog: 0xffe6c0, ground: 0xe0c068, low: 0xc8a050, dirt: 0xb08040, deco: 0x3fae5a, rock: 0xc2a070, amb: 0xffe6c8, path: 0xd4883a, fence: 0x8a6a3a },
+  { name: 'Schnee', style: 'snow',    sky: 0xcfe8ff, sea: 0x3a6ea5, fog: 0xdfeeff, ground: 0xeaf4ff, low: 0xc9dcec, dirt: 0x9fb0c0, deco: 0x3a7d4a, rock: 0xb9c6d4, amb: 0xe8f2ff, path: 0xd0c0a8, fence: 0x8899cc },
+  { name: 'Vulkan', style: 'volcano', sky: 0x3a2a30, sea: 0xd2401a, fog: 0x4a2a26, ground: 0x5a4a45, low: 0x3a2e2a, dirt: 0x33211e, deco: 0x7a3a2a, rock: 0x3a3030, amb: 0xff9060, path: 0xaa4422, fence: 0x664433 },
+  { name: 'Candy',  style: 'candy',   sky: 0xffd6ef, sea: 0x8a5ad0, fog: 0xffd6ef, ground: 0xff9ec7, low: 0xe07ba8, dirt: 0xc46a9a, deco: 0xff6f9c, rock: 0xd98cc0, amb: 0xffd6ef, path: 0xffcc88, fence: 0xcc88ff },
+  { name: 'Himmel', style: 'sky',     sky: 0xbfe6ff, sea: 0x6fa8d8, fog: 0xcfeaff, ground: 0xa6e0ff, low: 0x84c4e6, dirt: 0x88bcd8, deco: 0x6fc7e0, rock: 0x9fd0e8, amb: 0xdcf2ff, path: 0xffeebb, fence: 0x99ccff },
 ];
 function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
 function applyTheme(t) { scene.background.setHex(t.sky); scene.fog.color.setHex(t.fog); seaMat.color.setHex(t.sea); ambient.color.setHex(t.amb); }
@@ -115,7 +116,7 @@ let islandR = 22;                 // pro Level zufällig
 let islandGroup = null;
 let edgeRadii = [], edgeSegs = 28;
 let hills = [];
-let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [];
+let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [], floorHaz = [];
 let pathPts = [];
 let goal = null;
 const occupied = [];              // belegte Kreise -> verhindert Überlappung
@@ -272,8 +273,9 @@ function makeLevel(level) {
   const t = themeFor(level); applyTheme(t);
   if (islandGroup) world.remove(islandGroup);
   islandGroup = new THREE.Group();
-  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = [];
+  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = [];
   goal = null; occupied.length = 0; avoid.length = 0;
+  if (state) { state.puzzleSolved = false; state.puzzleStep = 0; }
 
   // --- Prozedurale Inselgröße & Form (Oberwellen + Rauschen) ---
   islandR = 17 + Math.random() * 8 + Math.min(level, 8) * 0.5;
@@ -310,36 +312,34 @@ function makeLevel(level) {
     hm.rotation.x = -Math.PI / 2; hm.position.set(p.x, groundHeight(p.x, p.z) + 0.05, p.z); islandGroup.add(hm);
   }
 
-  // --- Bäume mit Kugelkrone (off-path) ---
+  // --- Themenspezifische Flora (off-path) ---
   const treeCount = 5 + rint(0, 4);
-  for (let i = 0; i < treeCount; i++) {
-    const p = freeSpot(0.85, 1.1, { offPath: true });
-    const tree = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 1.3, 6), new THREE.MeshLambertMaterial({ color: 0x7a4a26 })); trunk.position.y = 0.65;
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.85 + Math.random() * 0.45, 8, 7), new THREE.MeshLambertMaterial({ color: t.deco, flatShading: true })); crown.position.y = 1.85; crown.castShadow = true;
-    tree.add(trunk, crown); tree.position.set(p.x, groundHeight(p.x, p.z), p.z); tree.userData.r = 0.6;
-    islandGroup.add(tree); obstacles.push(tree);
-    if (Math.random() < 0.35) addVine(p.x, groundHeight(p.x, p.z) + 2.5, p.z, t);
-  }
+  for (let i = 0; i < treeCount; i++) addThemeTree(freeSpot(0.85, 1.1, { offPath: true }), t);
 
-  // --- Felstürme (off-path, wie in Referenz: tall blue-grey stacks) ---
+  // --- Themenspezifische Felsen/Türme (off-path) ---
   const rockTowerCount = 1 + level + rint(0, 2);
-  for (let i = 0; i < rockTowerCount; i++) addRockTower(freeSpot(0.82, 1.5, { offPath: true }), t);
+  for (let i = 0; i < rockTowerCount; i++) addThemeRock(freeSpot(0.82, 1.5, { offPath: true }), t);
 
-  // --- Stachelbüsche (off-path, pink/lila) ---
+  // --- Themen-Deko-Hindernisse (off-path) ---
   const bushCount = 2 + rint(0, level);
-  for (let i = 0; i < bushCount; i++) addSpikyBush(freeSpot(0.85, 1.2, { offPath: true }));
+  for (let i = 0; i < bushCount; i++) addThemeDeco(freeSpot(0.85, 1.2, { offPath: true }), t);
 
-  // --- Grashalme (dekorativ, off-path) ---
+  // --- Bodendeko (dekorativ, off-path) ---
   for (let i = 0; i < 12 + rint(0, 8); i++) {
     const p = freeSpot(0.92, 0.3, { offPath: true });
-    addGrassTuft(p.x, p.z);
-    occupied.pop(); // Grashalme blockieren nichts
+    addThemeTuft(p.x, p.z, t);
+    occupied.pop(); // Bodendeko blockiert nichts
   }
+
+  // --- Lava-Tümpel (nur Vulkan, Bodengefahr) ---
+  if (t.style === 'volcano') for (let i = 0; i < 2 + rint(0, 2); i++) addLavaPool(t);
 
   // --- Sprungfedern (hexagonal rot) ---
   const padCount = level >= 2 ? 1 + Math.floor(level / 3) + rint(0, 1) : 1;
   for (let i = 0; i < padCount; i++) addPad(level);
+
+  // --- Zahlen-Rätsel (ab Level 2): Knöpfe 1..n in Reihenfolge drücken ---
+  if (level >= 2) { const pn = Math.min(2 + Math.floor((level - 1) / 2), 5); for (let i = 1; i <= pn; i++) addButton(i, t); }
 
   // --- Gegner ---
   for (let i = 0; i < Math.max(0, level - 1); i++) spawnEnemy('chaser', level);
@@ -608,51 +608,170 @@ function addPad(level) {
   islandGroup.add(g); pads.push(g);
 }
 
-function addRockTower(p, t) {
-  const gy = groundHeight(p.x, p.z);
-  const group = new THREE.Group();
-  const h = 3.5 + Math.random() * 4.5, segs = 2 + rint(0, 1);
-  const mat = new THREE.MeshLambertMaterial({ color: t.rock, flatShading: true });
-  for (let i = 0; i < segs; i++) {
-    const sh = h / segs, rw = (0.85 + Math.random() * 0.5) * (1 - i * 0.18);
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(rw * 2, sh, rw * 1.7), mat);
-    seg.position.y = i * sh + sh / 2; seg.rotation.y = Math.random() * Math.PI / 3;
-    seg.castShadow = true; group.add(seg);
+// --- Themenspezifische Flora -------------------------------------------------
+function addThemeTree(p, t) {
+  const gy = groundHeight(p.x, p.z), g = new THREE.Group();
+  let r = 0.6;
+  if (t.style === 'desert') {                       // Kaktus
+    const mat = new THREE.MeshLambertMaterial({ color: 0x2e9e4f, flatShading: true });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, 2.2, 8), mat); body.position.y = 1.1; body.castShadow = true; g.add(body);
+    for (const sx of [-1, 1]) if (Math.random() < 0.7) {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 0.85, 7), mat); arm.position.set(sx * 0.42, 1.0, 0); arm.rotation.z = sx * Math.PI / 2.4;
+      const up = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.7, 7), mat); up.position.set(sx * 0.72, 1.35, 0);
+      g.add(arm, up);
+    }
+    r = 0.5;
+  } else if (t.style === 'snow') {                  // Schnee-Tanne
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 0.7, 6), new THREE.MeshLambertMaterial({ color: 0x6b4a2e })); trunk.position.y = 0.35; g.add(trunk);
+    const conMat = new THREE.MeshLambertMaterial({ color: 0x2f6b3d, flatShading: true });
+    const snowMat = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x335577, emissiveIntensity: 0.15, flatShading: true });
+    for (let i = 0; i < 3; i++) {
+      const cy = 0.85 + i * 0.65, rad = 1.0 - i * 0.26;
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(rad, 0.9, 8), conMat); cone.position.y = cy; cone.castShadow = true;
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(rad * 0.55, 0.42, 8), snowMat); cap.position.y = cy + 0.32;
+      g.add(cone, cap);
+    }
+  } else if (t.style === 'volcano') {               // verkohlter Baum
+    const mat = new THREE.MeshLambertMaterial({ color: 0x2a2422, flatShading: true });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.3, 2.0, 6), mat); trunk.position.y = 1.0; trunk.castShadow = true; g.add(trunk);
+    for (let i = 0; i < 4; i++) {
+      const a = Math.random() * Math.PI * 2, br = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), mat);
+      br.position.set(Math.cos(a) * 0.28, 1.3 + Math.random() * 0.5, Math.sin(a) * 0.28); br.rotation.set((Math.random() - 0.5) * 1.4, a, (Math.random() - 0.5) * 1.4); g.add(br);
+    }
+    const ember = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), new THREE.MeshBasicMaterial({ color: 0xff5522 })); ember.position.y = 2.05; g.add(ember);
+    r = 0.55;
+  } else if (t.style === 'candy') {                 // Lutscher
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.6, 6), new THREE.MeshLambertMaterial({ color: 0xffffff })); stick.position.y = 0.8; g.add(stick);
+    const cc = [0xff4d6d, 0xffd23f, 0x4dd2ff, 0x9d4dff];
+    const disc = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 10), new THREE.MeshLambertMaterial({ color: cc[rint(0, cc.length - 1)], flatShading: true })); disc.position.y = 1.95; disc.scale.z = 0.4; disc.castShadow = true; g.add(disc);
+    r = 0.55;
+  } else if (t.style === 'sky') {                   // schwebende Wolke auf Goldsäule
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 1.2, 8), new THREE.MeshLambertMaterial({ color: 0xf0d060, emissive: 0x554400, emissiveIntensity: 0.2 })); col.position.y = 0.6; g.add(col);
+    const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+    for (let i = 0; i < 4; i++) { const puff = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random() * 0.3, 7, 6), cloudMat); puff.position.set((Math.random() - 0.5) * 1.1, 1.45 + Math.random() * 0.3, (Math.random() - 0.5) * 1.1); puff.castShadow = true; g.add(puff); }
+  } else {                                          // Wiese: Stamm + Kugelkrone
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 1.3, 6), new THREE.MeshLambertMaterial({ color: 0x7a4a26 })); trunk.position.y = 0.65;
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.85 + Math.random() * 0.45, 8, 7), new THREE.MeshLambertMaterial({ color: t.deco, flatShading: true })); crown.position.y = 1.85; crown.castShadow = true;
+    g.add(trunk, crown);
+    if (Math.random() < 0.35) addVine(p.x, gy + 2.5, p.z, t);
   }
-  group.position.set(p.x, gy, p.z); group.userData.r = 1.1;
-  islandGroup.add(group); obstacles.push(group);
+  g.position.set(p.x, gy, p.z); g.userData.r = r;
+  islandGroup.add(g); obstacles.push(g);
+}
+
+// --- Themenspezifische Felsen/Türme ------------------------------------------
+function addThemeRock(p, t) {
+  const gy = groundHeight(p.x, p.z), g = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color: t.rock, flatShading: true });
+  if (t.style === 'desert') {                       // Mesa: breite Schichten
+    const layers = 2 + rint(0, 1); let y = 0;
+    for (let i = 0; i < layers; i++) { const lh = 0.8 + Math.random() * 0.6, lw = 1.6 - i * 0.4; const seg = new THREE.Mesh(new THREE.CylinderGeometry(lw, lw * 1.05, lh, 6), mat); seg.position.y = y + lh / 2; seg.rotation.y = Math.random(); seg.castShadow = true; g.add(seg); y += lh; }
+  } else if (t.style === 'snow') {                  // Eisspitzen
+    const iceMat = new THREE.MeshLambertMaterial({ color: 0xbfe8ff, emissive: 0x335577, emissiveIntensity: 0.2, flatShading: true, transparent: true, opacity: 0.92 });
+    const n = 2 + rint(0, 2);
+    for (let i = 0; i < n; i++) { const h = 2.5 + Math.random() * 3, sp = new THREE.Mesh(new THREE.ConeGeometry(0.4 + Math.random() * 0.3, h, 6), iceMat); sp.position.set((Math.random() - 0.5) * 1.0, h / 2, (Math.random() - 0.5) * 1.0); sp.rotation.z = (Math.random() - 0.5) * 0.3; sp.castShadow = true; g.add(sp); }
+  } else if (t.style === 'volcano') {               // Obsidian-Nadel mit Glut
+    const obMat = new THREE.MeshLambertMaterial({ color: 0x1e1a1e, flatShading: true });
+    const h = 3 + Math.random() * 3, sp = new THREE.Mesh(new THREE.ConeGeometry(0.9, h, 5), obMat); sp.position.y = h / 2; sp.castShadow = true; g.add(sp);
+    const glow = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.12, 6, 12), new THREE.MeshBasicMaterial({ color: 0xff4400 })); glow.rotation.x = Math.PI / 2; glow.position.y = 0.2; g.add(glow);
+  } else if (t.style === 'candy') {                 // Zuckerstange
+    const sc = [0xff3355, 0xffffff]; let y = 0;
+    for (let i = 0; i < 4; i++) { const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.7, 10), new THREE.MeshLambertMaterial({ color: sc[i % 2] })); seg.position.y = y + 0.35; g.add(seg); y += 0.7; }
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 8), new THREE.MeshLambertMaterial({ color: 0xff77aa, flatShading: true })); top.position.y = y + 0.2; top.castShadow = true; g.add(top);
+    g.rotation.z = (Math.random() - 0.5) * 0.2;
+  } else if (t.style === 'sky') {                   // Goldsäule
+    const colMat = new THREE.MeshLambertMaterial({ color: 0xf2cd5c, emissive: 0x554400, emissiveIntensity: 0.25, flatShading: true });
+    const h = 3 + Math.random() * 2.5;
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, h, 10), colMat); shaft.position.y = h / 2; shaft.castShadow = true;
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.7, 0.4, 10), colMat); cap.position.y = h + 0.2;
+    const baseC = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 0.4, 10), colMat); baseC.position.y = 0.2;
+    g.add(shaft, cap, baseC);
+  } else {                                          // Wiese: gestapelte Boxen
+    const h = 3.5 + Math.random() * 4.5, segs = 2 + rint(0, 1);
+    for (let i = 0; i < segs; i++) { const sh = h / segs, rw = (0.85 + Math.random() * 0.5) * (1 - i * 0.18); const seg = new THREE.Mesh(new THREE.BoxGeometry(rw * 2, sh, rw * 1.7), mat); seg.position.y = i * sh + sh / 2; seg.rotation.y = Math.random() * Math.PI / 3; seg.castShadow = true; g.add(seg); }
+  }
+  g.position.set(p.x, gy, p.z); g.userData.r = 1.1;
+  islandGroup.add(g); obstacles.push(g);
   occupied.push({ x: p.x, z: p.z, r: 1.5 });
 }
 
-function addSpikyBush(p) {
-  const gy = groundHeight(p.x, p.z);
-  const group = new THREE.Group();
-  const spikeColors = [0xcc44aa, 0xdd66cc, 0xaa2299, 0xff55bb];
-  const spikeCount = 5 + rint(0, 4);
-  for (let i = 0; i < spikeCount; i++) {
-    const mat = new THREE.MeshLambertMaterial({ color: spikeColors[i % spikeColors.length], flatShading: true });
+// --- Themen-Deko-Hindernis (kleiner Busch/Cluster) ---------------------------
+function addThemeDeco(p, t) {
+  const gy = groundHeight(p.x, p.z), g = new THREE.Group();
+  let colors;
+  if (t.style === 'desert') colors = [0x2e9e4f, 0x3fae5a, 0x8a6a3a];
+  else if (t.style === 'snow') colors = [0xffffff, 0xcfe8ff, 0xbfe0ff];
+  else if (t.style === 'volcano') colors = [0x551111, 0x3a2422, 0xff5522];
+  else if (t.style === 'candy') colors = [0xff77bb, 0xffd23f, 0x88ddff];
+  else if (t.style === 'sky') colors = [0xffffff, 0xf2cd5c, 0xbfe6ff];
+  else colors = [0xcc44aa, 0xdd66cc, 0xaa2299, 0xff55bb];
+  const n = 5 + rint(0, 4);
+  for (let i = 0; i < n; i++) {
+    const mat = new THREE.MeshLambertMaterial({ color: colors[i % colors.length], flatShading: true });
     const spike = new THREE.Mesh(new THREE.ConeGeometry(0.2 + Math.random() * 0.16, 1.0 + Math.random() * 0.8, 5), mat);
-    spike.position.set((Math.random()-0.5)*1.0, 0.08, (Math.random()-0.5)*1.0);
-    spike.rotation.set((Math.random()-0.5)*1.5, Math.random()*Math.PI*2, (Math.random()-0.5)*1.5);
-    spike.castShadow = true; group.add(spike);
+    spike.position.set((Math.random() - 0.5) * 1.0, 0.08, (Math.random() - 0.5) * 1.0);
+    spike.rotation.set((Math.random() - 0.5) * 1.5, Math.random() * Math.PI * 2, (Math.random() - 0.5) * 1.5);
+    spike.castShadow = true; g.add(spike);
   }
-  group.position.set(p.x, gy, p.z); group.userData.r = 0.95;
-  islandGroup.add(group); obstacles.push(group);
+  g.position.set(p.x, gy, p.z); g.userData.r = 0.95;
+  islandGroup.add(g); obstacles.push(g);
   occupied.push({ x: p.x, z: p.z, r: 1.3 });
 }
 
-function addGrassTuft(x, z) {
-  const gy = groundHeight(x, z);
-  const group = new THREE.Group();
-  const mat = new THREE.MeshLambertMaterial({ color: 0x228800, flatShading: true });
+// --- Bodendeko (kein Hindernis) ----------------------------------------------
+function addThemeTuft(x, z, t) {
+  const gy = groundHeight(x, z), g = new THREE.Group();
+  let col = 0x228800;
+  if (t.style === 'desert') col = 0xb89a3a;
+  else if (t.style === 'snow') col = 0xeaf4ff;
+  else if (t.style === 'volcano') col = 0x552a22;
+  else if (t.style === 'candy') col = 0xff99cc;
+  else if (t.style === 'sky') col = 0xcfe6ff;
+  const mat = new THREE.MeshLambertMaterial({ color: col, flatShading: true });
   const n = 3 + rint(0, 3);
   for (let i = 0; i < n; i++) {
-    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.055 + Math.random()*0.04, 0.38 + Math.random()*0.38, 4), mat);
-    blade.position.set((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.5);
-    blade.rotation.set((Math.random()-0.5)*0.55, Math.random()*Math.PI*2, (Math.random()-0.5)*0.55);
-    group.add(blade);
+    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.055 + Math.random() * 0.04, 0.38 + Math.random() * 0.38, 4), mat);
+    blade.position.set((Math.random() - 0.5) * 0.5, 0, (Math.random() - 0.5) * 0.5);
+    blade.rotation.set((Math.random() - 0.5) * 0.55, Math.random() * Math.PI * 2, (Math.random() - 0.5) * 0.55);
+    g.add(blade);
   }
-  group.position.set(x, gy, z); islandGroup.add(group);
+  g.position.set(x, gy, z); islandGroup.add(g);
+}
+
+// --- Lava-Tümpel (Vulkan): Bodengefahr ---------------------------------------
+function addLavaPool(t) {
+  const r = 1.6 + Math.random() * 1.2;
+  const p = freeSpot(0.8, r + 1.2, { flat: true, offPath: true });
+  const gy = groundHeight(p.x, p.z);
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(r, 22), new THREE.MeshBasicMaterial({ color: 0xff4400 }));
+  pool.rotation.x = -Math.PI / 2; pool.position.set(p.x, gy + 0.06, p.z); islandGroup.add(pool);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.16, 6, 24), new THREE.MeshLambertMaterial({ color: 0x331008, emissive: 0xaa2200, emissiveIntensity: 0.5, flatShading: true }));
+  rim.rotation.x = -Math.PI / 2; rim.position.set(p.x, gy + 0.08, p.z); islandGroup.add(rim);
+  floorHaz.push({ x: p.x, z: p.z, r, mesh: pool });
+}
+
+// --- Zahlen-Rätsel-Knopf -----------------------------------------------------
+function makeNumberTexture(num) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0, 0, 128, 128);
+  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#222'; ctx.lineWidth = 8;
+  ctx.font = 'bold 92px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.strokeText(String(num), 64, 70); ctx.fillText(String(num), 64, 70);
+  const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4; return tex;
+}
+function addButton(num, t) {
+  const p = freeSpot(0.82, 1.7, { flat: true });
+  const g = new THREE.Group();
+  const baseColor = 0x4a5568;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.28, 0.3, 8), new THREE.MeshLambertMaterial({ color: 0x2a2a33, flatShading: true })); base.position.y = 0.15;
+  const topMat = new THREE.MeshLambertMaterial({ color: baseColor, emissive: 0x101820, flatShading: true });
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.98, 0.24, 8), topMat); top.position.y = 0.4; top.castShadow = true;
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), new THREE.MeshBasicMaterial({ map: makeNumberTexture(num), transparent: true, depthWrite: false }));
+  plane.rotation.x = -Math.PI / 2; plane.position.y = 0.53;
+  g.add(base, top, plane);
+  g.position.set(p.x, groundHeight(p.x, p.z), p.z); islandGroup.add(g);
+  buttons.push({ group: g, top, topMat, num, r: 1.35, activated: false, baseColor, explodeT: 0 });
 }
 
 function addFencePerimeter(t) {
@@ -793,6 +912,7 @@ const state = {
   pos: new THREE.Vector2(0, 0), vel: new THREE.Vector2(0, 0), prevVel: new THREE.Vector2(0, 0),
   y: 0, vy: 0, grounded: true, invincibleUntil: 0, shield: false, magnetUntil: 0,
   animPhase: 0, landSquash: 0, leanX: 0, leanZ: 0, shake: 0,
+  puzzleSolved: false, puzzleStep: 0, puzzleCdUntil: 0,
 };
 
 // ===================================================================
@@ -800,7 +920,7 @@ const state = {
 // ===================================================================
 const MODES = { SLIDE_WORLD: -1, CONTROL_CHARACTER: 1 };
 let mode = MODES.SLIDE_WORLD;
-const SENSITIVITY = 0.95, MAX_SPEED = 26, FRICTION = 2.2, GRAV = 30, SLOPE_K = 17;
+const SENSITIVITY = 0.95, MAX_SPEED = 24, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
 const DRAG_FOLLOW = 18, AIR_FOLLOW = 5, KEY_ACCEL = 46, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;
 const drag = { active: false, dx: 0, dy: 0, startX: 0, startY: 0, startT: 0, totalDist: 0 };
 function px2world() { return 30 / Math.min(innerWidth, innerHeight); }
@@ -816,11 +936,11 @@ addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 // ===================================================================
 //  HUD / Overlays
 // ===================================================================
-const scoreBadge = document.getElementById('scoreBadge'), comboBadge = document.getElementById('comboBadge'), starBadge = document.getElementById('starBadge'), levelBadge = document.getElementById('levelBadge'), livesBadge = document.getElementById('livesBadge');
+const scoreBadge = document.getElementById('scoreBadge'), comboBadge = document.getElementById('comboBadge'), starBadge = document.getElementById('starBadge'), levelBadge = document.getElementById('levelBadge'), livesBadge = document.getElementById('livesBadge'), puzzleBadge = document.getElementById('puzzleBadge');
 const overlay = document.getElementById('overlay'), startBtn = document.getElementById('startBtn'), modeBtn = document.getElementById('modeBtn'), soundBtn = document.getElementById('soundBtn'), toast = document.getElementById('toast'), hiLine = document.getElementById('hiLine');
 modeBtn.addEventListener('click', () => { mode = mode === MODES.SLIDE_WORLD ? MODES.CONTROL_CHARACTER : MODES.SLIDE_WORLD; modeBtn.textContent = mode === MODES.SLIDE_WORLD ? '🌍 Welt sliden' : '🐾 Figur steuern'; showToast(mode === MODES.SLIDE_WORLD ? 'Du ziehst die Welt unter der Figur weg' : 'Die Figur folgt deinem Finger'); });
 soundBtn.addEventListener('click', () => { Sound.init(); soundBtn.textContent = Sound.toggle() ? '🔊' : '🔇'; });
-function updateHUD() { scoreBadge.textContent = '🪙 ' + state.score; comboBadge.textContent = '×' + state.combo; comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.06) + ')'; starBadge.textContent = '⭐ ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; }
+function updateHUD() { scoreBadge.textContent = '🪙 ' + state.score; comboBadge.textContent = '×' + state.combo; comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.06) + ')'; starBadge.textContent = '⭐ ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
 let toastTimer = 0;
 function showToast(msg) { toast.textContent = msg; toast.style.opacity = 1; clearTimeout(toastTimer); toastTimer = setTimeout(() => (toast.style.opacity = 0), 1600); }
 function addScore(pts) { state.score += pts; if (state.score > state.hiscore) { state.hiscore = state.score; localStorage.setItem(HISCORE_KEY, state.hiscore); } }
@@ -874,7 +994,7 @@ function step(dt) {
       const d = Math.max(0.001, Math.hypot(dx, dz)), push = (minD - d) + 0.02;
       state.pos.x += (dx / d) * push; state.pos.y += (dz / d) * push;
       const dot = state.vel.x * (dx / d) + state.vel.y * (dz / d);
-      if (dot < 0) { state.vel.x -= 1.6 * dot * (dx / d); state.vel.y -= 1.6 * dot * (dz / d); if (state.vel.length() > 4) Sound.bounce(); }
+      if (dot < 0) { state.vel.x -= 1.4 * dot * (dx / d); state.vel.y -= 1.4 * dot * (dz / d); if (state.vel.length() > 4) Sound.bounce(); }
       blocked = true; break;
     }
   }
@@ -942,6 +1062,46 @@ function step(dt) {
     }
   }
 
+  // --- Zahlen-Rätsel-Knöpfe (in Reihenfolge drücken) ---
+  if (buttons.length && state.grounded && performance.now() > state.puzzleCdUntil) {
+    for (const btn of buttons) {
+      if (btn.activated) continue;
+      const bx = btn.group.position.x, bz = btn.group.position.z;
+      if (Math.hypot(state.pos.x - bx, state.pos.y - bz) > btn.r) continue;
+      if (Math.abs(state.y - btn.group.position.y) > 2.2) continue;
+      state.puzzleCdUntil = performance.now() + 350;
+      if (btn.num === state.puzzleStep + 1) {                 // richtige Reihenfolge
+        btn.activated = true; state.puzzleStep++;
+        btn.topMat.color.setHex(0x33dd55); btn.topMat.emissive.setHex(0x0a5520); btn.topMat.emissiveIntensity = 1;
+        Sound.boing(); burst(bx, btn.group.position.y + 0.6, bz, 0x33dd55, 14, 5); updateHUD();
+        if (state.puzzleStep >= buttons.length) { state.puzzleSolved = true; Sound.power(); showToast('🔢 Rätsel gelöst!'); tryActivateGoal(); }
+        else showToast('🔢 ' + state.puzzleStep + '/' + buttons.length + ' richtig');
+      } else {                                                // falsch -> Knopf explodiert + Knockback
+        let dx = state.pos.x - bx, dz = state.pos.y - bz, dd = Math.hypot(dx, dz);
+        if (dd < 0.3) {                                       // mittig auf dem Knopf: Stoß gegen die Laufrichtung
+          const vl = Math.hypot(state.vel.x, state.vel.y);
+          if (vl > 0.5) { dx = -state.vel.x; dz = -state.vel.y; dd = vl; } else { dx = 1; dz = 0; dd = 1; }
+        }
+        const kick = 15;
+        state.vel.x = (dx / dd) * kick; state.vel.y = (dz / dd) * kick;
+        state.invincibleUntil = performance.now() + 500; state.shake = 0.5;
+        burst(bx, btn.group.position.y + 0.6, bz, 0xff5522, 22, 9); burst(bx, btn.group.position.y + 0.6, bz, 0xffaa22, 14, 7); Sound.hurt();
+        for (const b2 of buttons) { b2.activated = false; b2.topMat.color.setHex(b2.baseColor); b2.topMat.emissive.setHex(0x101820); }
+        state.puzzleStep = 0; btn.explodeT = 0.45; updateHUD();
+        showToast('💥 Falsche Reihenfolge!');
+      }
+      break;
+    }
+  }
+
+  // --- Lava-Tümpel (Vulkan-Bodengefahr) ---
+  for (const lv of floorHaz) {
+    if (state.grounded && !invinc && Math.hypot(state.pos.x - lv.x, state.pos.y - lv.z) < lv.r - 0.3) {
+      if (state.shield) { state.shield = false; shieldFx.visible = false; state.invincibleUntil = performance.now() + 700; Sound.bounce(); showToast('🛡 Schild aufgebraucht!'); }
+      else { hurt('🌋 Lava!'); return; }
+    }
+  }
+
   // --- Magnet / Schild ---
   const magnet = performance.now() < state.magnetUntil; magnetFx.visible = magnet; shieldFx.visible = state.shield;
 
@@ -949,7 +1109,7 @@ function step(dt) {
   for (let i = stars.length - 1; i >= 0; i--) {
     const s = stars[i]; let dx = state.pos.x - s.position.x, dz = state.pos.y - s.position.z, dd = dx * dx + dz * dz;
     if (magnet && dd < 36) { s.position.x += dx * Math.min(1, 6 * dt); s.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - s.position.x; dz = state.pos.y - s.position.z; dd = dx * dx + dz * dz; }
-    if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) { islandGroup.remove(s); stars.splice(i, 1); state.collected++; bumpCombo(); addScore(100 * state.combo); Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, 0xffd23f, 12, 5); if (state.combo >= 3) showToast('Combo ×' + state.combo + '!'); updateHUD(); if (state.collected >= state.total) activateGoal(); }
+    if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) { islandGroup.remove(s); stars.splice(i, 1); state.collected++; bumpCombo(); addScore(100 * state.combo); Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, 0xffd23f, 12, 5); if (state.combo >= 3) showToast('Combo ×' + state.combo + '!'); updateHUD(); if (state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast('⭐ Sterne komplett — jetzt das 🔢 Rätsel lösen!'); } }
   }
   // --- Münzen ---
   for (let i = coins.length - 1; i >= 0; i--) {
@@ -983,6 +1143,7 @@ function step(dt) {
 }
 
 function activateGoal() { if (!goal || goal.userData.active) return; goal.userData.active = true; goal.userData.ring.material.color.setHex(0x55ffd0); goal.userData.beam.material.opacity = 0.25; Sound.power(); showToast('🌀 Portal offen — lauf hin!'); }
+function tryActivateGoal() { if (state.collected >= state.total && (state.puzzleSolved || !buttons.length)) activateGoal(); }
 
 // ===================================================================
 //  Render-Loop
@@ -1004,6 +1165,18 @@ function animate() {
   if (goal) goal.userData.ring.rotation.z = t * 1.5;
   shieldFx.rotation.y = t * 2; magnetFx.rotation.z = t * 3;
   for (const pad of pads) { if (pad.userData.squash > 0) pad.userData.squash = Math.max(0, pad.userData.squash - dt * 4); pad.userData.top.scale.y = 1 - pad.userData.squash * 0.6; pad.userData.top.position.y = 0.4 - pad.userData.squash * 0.1; }
+  for (const btn of buttons) {
+    if (btn.explodeT > 0) {
+      btn.explodeT = Math.max(0, btn.explodeT - dt);
+      const k = 1 - btn.explodeT / 0.45;
+      btn.topMat.emissive.setHex(0xff3300); btn.topMat.emissiveIntensity = 1;
+      btn.group.scale.setScalar(1 + Math.sin(Math.min(1, k) * Math.PI) * 0.3);
+      if (btn.explodeT === 0) { btn.group.scale.setScalar(1); if (!btn.activated) btn.topMat.emissive.setHex(0x101820); }
+    } else if (!btn.activated) {
+      btn.topMat.emissiveIntensity = 0.5 + Math.sin(t * 4 + btn.num) * 0.4;
+    }
+  }
+  for (const lv of floorHaz) lv.mesh.material.color.setRGB(1, 0.27 + Math.sin(t * 3 + lv.x) * 0.08, 0);
   const spd = state.vel.length(), moving = spd > 0.6 && state.grounded;
   for (let i = 0; i < legMeshes.length; i++) { const off = (i % 2 === 0 ? 0 : Math.PI); if (!state.grounded) legMeshes[i].rotation.x = -0.7; else legMeshes[i].rotation.x = moving ? Math.sin(state.animPhase + off) * Math.min(0.9, spd * 0.08) : THREE.MathUtils.lerp(legMeshes[i].rotation.x, 0, Math.min(1, 8 * dt)); }
   const stretch = THREE.MathUtils.clamp(state.vy * 0.03, -0.25, 0.35);
