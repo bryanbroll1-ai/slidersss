@@ -1162,7 +1162,7 @@ function saveProgress() { localStorage.setItem('landsliders_coins', state.coins)
 const MODES = { SLIDE_WORLD: -1, CONTROL_CHARACTER: 1 };
 let mode = MODES.SLIDE_WORLD;
 const SENSITIVITY = 1.0, MAX_SPEED = 25, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
-const DRAG_FOLLOW = 40, AIR_FOLLOW = 9, KEY_ACCEL = 50, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;
+const AIR_FOLLOW = 9, KEY_ACCEL = 50, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;  // ground glide is 1:1 (sticky)
 const drag = { active: false, dx: 0, dy: 0, lastX: 0, lastY: 0, startX: 0, startY: 0, startT: 0, totalDist: 0, fvx: 0, fvy: 0, pid: -1 };
 function px2world() { return 30 / Math.min(innerWidth, innerHeight); }
 
@@ -1182,6 +1182,7 @@ function endDrag(e) {
   if (!drag.active) return; drag.active = false;
   try { if (e && drag.pid >= 0) renderer.domElement.releasePointerCapture(drag.pid); } catch (_) {}
   if (drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME) state.vel.set(0, 0);
+  else { state.vel.x = drag.fvx; state.vel.y = drag.fvy; }   // smooth flick momentum (not the noisy last frame)
 }
 addEventListener('pointerup', endDrag); addEventListener('pointercancel', endDrag); addEventListener('lostpointercapture', endDrag);
 const keys = {};
@@ -1297,13 +1298,17 @@ function step(dt) {
   if (drag.active) {
     inputActive = true;
     const s = px2world() * SENSITIVITY * mode;
-    const tx = (drag.dx * s) / dt, tz = (drag.dy * s) / dt; drag.dx = drag.dy = 0;
-    // light low-pass on the finger-velocity estimate removes 1px quantisation jitter
-    const fk = Math.min(1, 50 * dt);
-    drag.fvx += (tx - drag.fvx) * fk; drag.fvy += (tz - drag.fvy) * fk;
-    // snap world velocity to the finger quickly -> sticky, low-latency slide
-    const follow = Math.min(1, (state.grounded ? DRAG_FOLLOW : AIR_FOLLOW) * dt);
-    state.vel.x += (drag.fvx - state.vel.x) * follow; state.vel.y += (drag.fvy - state.vel.y) * follow;
+    const tvx = (drag.dx * s) / dt, tvy = (drag.dy * s) / dt; drag.dx = drag.dy = 0;
+    if (state.grounded) {
+      // 1:1 sticky glide — pos += vel*dt moves exactly the finger delta -> zero lag, perfectly smooth
+      state.vel.x = tvx; state.vel.y = tvy;
+    } else {
+      const af = Math.min(1, AIR_FOLLOW * dt);   // reduced air control
+      state.vel.x += (tvx - state.vel.x) * af; state.vel.y += (tvy - state.vel.y) * af;
+    }
+    // smoothed velocity, used only for clean throw-momentum on release (doesn't affect the glide)
+    const fk = Math.min(1, 16 * dt);
+    drag.fvx += (state.vel.x - drag.fvx) * fk; drag.fvy += (state.vel.y - drag.fvy) * fk;
   }
   const kx = (keys['arrowright'] || keys['d'] ? 1 : 0) - (keys['arrowleft'] || keys['a'] ? 1 : 0);
   const kz = (keys['arrowdown'] || keys['s'] ? 1 : 0) - (keys['arrowup'] || keys['w'] ? 1 : 0);
@@ -1581,18 +1586,10 @@ function animate() {
 
   const wp = new THREE.Vector3(); player.getWorldPosition(wp);
   const sh = state.shake;
-  const spd2 = state.vel.length();
-  // Gentle dynamic FOV — a hint of speed without warping the view
-  const targetFov = 55 + Math.min(spd2, MAX_SPEED) * 0.16;
-  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, Math.min(1, 5 * dt));
-  camera.updateProjectionMatrix();
-  // Subtle look-ahead so you can see slightly ahead while sliding
-  const la = Math.min(spd2 * 0.16, 2.4);
-  const laX = spd2 > 0.5 ? (state.vel.x / spd2) * la : 0;
-  const laZ = spd2 > 0.5 ? (state.vel.y / spd2) * la : 0;
-  const camFollow = Math.min(1, 10 * dt);   // frame-rate independent, snappier than before
-  camera.position.lerp(new THREE.Vector3(wp.x + laX + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 + (Math.random() - 0.5) * sh, wp.z + laZ + 15.5), camFollow);
-  camera.lookAt(wp.x + laX, Math.max(wp.y, -4) + 1.5, wp.z + laZ);
+  // Calm trailing camera: fixed FOV, no look-ahead, frame-rate-independent follow
+  const camFollow = Math.min(1, 8 * dt);
+  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 17.5 + (Math.random() - 0.5) * sh, wp.z + 15.5), camFollow);
+  camera.lookAt(wp.x, Math.max(wp.y, -4) + 1.5, wp.z);
   // Player point light follows just above the character
   playerLight.position.set(wp.x, wp.y + 2.8, wp.z);
   renderer.render(scene, camera);
