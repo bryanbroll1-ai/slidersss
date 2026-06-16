@@ -73,6 +73,10 @@
   #shopClose{margin-top:20px;font-size:17px;font-weight:800;padding:12px 48px;border:none;border-radius:28px;background:linear-gradient(135deg,#ffb627 0%,#ff6a00 100%);color:#3a1800;cursor:pointer;box-shadow:0 4px 18px rgba(255,140,0,0.45);transition:transform .1s;}
   #shopClose:hover{transform:translateY(-2px);}
 
+  /* ── Level-Übergang ── */
+  #levelFade{position:fixed;inset:0;z-index:18;pointer-events:none;opacity:0;background:#fff;transition:opacity .32s ease-in-out;}
+  #levelFade.fade-in{opacity:1;}
+
   /* ── Combo timer bar ── */
   #comboBar{position:fixed;top:46px;left:50%;transform:translateX(-50%);width:120px;max-width:40vw;height:5px;border-radius:3px;background:rgba(0,0,0,0.4);overflow:hidden;z-index:10;opacity:0;transition:opacity .2s;pointer-events:none;}
   #comboBar.vis{opacity:1;}
@@ -123,8 +127,8 @@
 <div id="overlay">
   <h1>🏔️ Land Sliders 3D</h1>
   <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt, <b>Doppeltippen</b> 💨 dasht. Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b> stoppt, <b>Shift</b> dasht, <b>P/Esc</b> pausiert.</p>
-  <p>Sammle alle ⭐ und löse das 🔢 Zahlen-Rätsel — drücke die Knöpfe in der Reihenfolge 1·2·3. Bei falscher Reihenfolge explodiert der Knopf und stößt dich zurück! Erst dann öffnet sich das 🌀 Portal. Nutze 🟢 Sprungfedern, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser, 🔨 Abrissbirne und 🌋 Lava!</p>
-  <p>Sammle 🪙 Münzen (auch auf den Neben-Inseln über die 🌉 Hängebrücke) und schalte im 🎁 Lootbox-Shop neue Charaktere mit eigenen Fähigkeiten frei!</p>
+  <p>Jeder Charakter sammelt sein <b>eigenes Lieblings-Objekt</b> (🦴 🎾 🧲 ⚡ 💰 🪶 🍀 ⭐). Sammle alle ein und löse das 🔢 Zahlen-Rätsel — drücke die Knöpfe in der Reihenfolge 1·2·3. Bei falscher Reihenfolge explodiert der Knopf und stößt dich zurück! Erst dann öffnet sich das 🌀 Portal. Nutze 🟢 Sprungfedern, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser, 🔨 Abrissbirne und 🌋 Lava!</p>
+  <p>Pass auf die <b>Lücken im Zaun</b> auf — dort fällst du herunter! Sammle 🪙 Münzen (auch auf den Neben-Inseln über die 🌉 Hängebrücke) und schalte im 🎁 Lootbox-Shop neue Charaktere mit eigener Gestalt &amp; Fähigkeit frei!</p>
   <p id="hiLine"></p>
   <button id="startBtn">Spielen</button>
   <button id="shopBtn">🎁 Charaktere &amp; Lootbox</button>
@@ -155,6 +159,7 @@
 <div id="vignette"></div>
 <div id="flash"></div>
 <div id="floatTexts"></div>
+<div id="levelFade"></div>
 
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -229,14 +234,14 @@ function applyTheme(t) { scene.background.setHex(t.sky); scene.fog.color.setHex(
 //  Charaktere (per Lootbox mit Münzen freischaltbar, je eigene Fähigkeit)
 // ===================================================================
 const CHARACTERS = [
-  { id: 'wuffel',    name: 'Wuffel',    ico: '🐶', body: 0xf0c070, leg: 0x5a8aff, trait: null,     acc: null,    desc: 'Der treue Klassiker — ausgewogen.' },
-  { id: 'flummi',    name: 'Flummi',    ico: '🟣', body: 0xb24bd6, leg: 0x7a2fae, trait: 'pad',    acc: 'spring', desc: 'Sprungfedern schleudern +45% höher.' },
-  { id: 'magneta',   name: 'Magneta',   ico: '🧲', body: 0xff5fa8, leg: 0xc02f6e, trait: 'magnet', acc: 'halo',  desc: 'Zieht Münzen & Sterne dauerhaft an.' },
-  { id: 'turbo',     name: 'Turbo',     ico: '⚡', body: 0xffd23f, leg: 0xd2691e, trait: 'speed',  acc: 'fin',   desc: 'Schneller & gleitet weiter.' },
-  { id: 'goldi',     name: 'Goldi',     ico: '🪙', body: 0xffcf4d, leg: 0xb8860b, trait: 'coin2',  acc: 'coin',  desc: 'Jede Münze zählt doppelt.' },
-  { id: 'feder',     name: 'Feder',     ico: '🪂', body: 0xbfe6ff, leg: 0x6fa8d8, trait: 'float',  acc: 'cloud', desc: 'Schwebt: sanfter Fall, höhere Sprünge.' },
-  { id: 'panzi',     name: 'Panzi',     ico: '🛡️', body: 0x6fae6f, leg: 0x3a7d4a, trait: 'shield', acc: 'shell', desc: 'Startet jedes Level mit Schild.' },
-  { id: 'sternchen', name: 'Sternchen', ico: '🌟', body: 0xfff0a0, leg: 0xffb627, trait: 'score',  acc: 'star',  desc: 'Sterne geben +50% Punkte.' },
+  { id: 'wuffel',    name: 'Wuffel',    ico: '🐶', body: 0xf0c070, leg: 0x5a8aff, acc2: 0xdda04a, trait: null,     fav: 'bone',    favIco: '🦴', favName: 'Knochen', desc: 'Treuer Hund — sammelt Knochen, ausgewogen.' },
+  { id: 'flummi',    name: 'Flummi',    ico: '🟣', body: 0xb24bd6, leg: 0x7a2fae, acc2: 0xe0a8f4, trait: 'pad',    fav: 'ball',    favIco: '🎾', favName: 'Flummis', desc: 'Hüpfball — Federn schleudern +45% höher.' },
+  { id: 'magneta',   name: 'Magneta',   ico: '🧲', body: 0xff5fa8, leg: 0xc02f6e, acc2: 0xe8e8f0, trait: 'magnet', fav: 'magnet',  favIco: '🧲', favName: 'Magnete', desc: 'Magnet-Wesen — zieht alles an, sammelt Magnete.' },
+  { id: 'turbo',     name: 'Turbo',     ico: '⚡', body: 0xffd23f, leg: 0xd2691e, acc2: 0x3a4860, trait: 'speed',  fav: 'bolt',    favIco: '⚡', favName: 'Blitze', desc: 'Renner — schneller, gleitet weiter, sammelt Blitze.' },
+  { id: 'goldi',     name: 'Goldi',     ico: '🪙', body: 0xffcf4d, leg: 0xb8860b, acc2: 0xfff0b0, trait: 'coin2',  fav: 'ingot',   favIco: '💰', favName: 'Goldbarren', desc: 'Goldkönig — jede Münze zählt doppelt, sammelt Barren.' },
+  { id: 'feder',     name: 'Feder',     ico: '🪂', body: 0xbfe6ff, leg: 0x6fa8d8, acc2: 0xffffff, trait: 'float',  fav: 'feather', favIco: '🪶', favName: 'Federn', desc: 'Wolkenwesen — schwebt sanft, sammelt Federn.' },
+  { id: 'panzi',     name: 'Panzi',     ico: '🛡️', body: 0x6fae6f, leg: 0x3a7d4a, acc2: 0x2a5d3a, trait: 'shield', fav: 'leaf',    favIco: '🍀', favName: 'Blätter', desc: 'Schildkröte — startet mit Schild, sammelt Blätter.' },
+  { id: 'sternchen', name: 'Sternchen', ico: '🌟', body: 0xfff0a0, leg: 0xffb627, acc2: 0xffd23f, trait: 'score',  fav: 'star',    favIco: '⭐', favName: 'Sterne', desc: 'Sternchen — Sterne geben +50% Punkte.' },
 ];
 const LOOTBOX_COST = 40;
 function charById(id) { return CHARACTERS.find(c => c.id === id) || CHARACTERS[0]; }
@@ -253,6 +258,7 @@ let islandGroup = null;
 let edgeRadii = [], edgeSegs = 28;
 let hills = [];
 let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [], floorHaz = [], gems = [];
+let fenceGaps = [];  // [{angle, hw}] — Lücken im Zaun, wo man herunterfallen kann
 let pathPts = [];
 let curTheme = null;
 let goal = null;
@@ -426,12 +432,65 @@ function makeCoinMesh(t) {
   const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color, emissive, flatShading: flat })); m.rotation.x = rotX; return m;
 }
 
+// --- Lieblings-Sammelobjekt je Charakter (das, was man im Level einsammeln muss) ---
+function favInfo(charId) {
+  const c = charById(charId);
+  switch (c.fav) {
+    case 'bone':    return { color: 0xfff4e0, emissive: 0x8a8270, ico: '🦴' };
+    case 'ball':    return { color: 0xc04bd6, emissive: 0x5a1f70, ico: '🎾' };
+    case 'magnet':  return { color: 0xff4444, emissive: 0x7a1010, ico: '🧲' };
+    case 'bolt':    return { color: 0xffe24a, emissive: 0x8a6a00, ico: '⚡' };
+    case 'ingot':   return { color: 0xffd24a, emissive: 0x7a5800, ico: '💰' };
+    case 'feather': return { color: 0xddf2ff, emissive: 0x5a8aa8, ico: '🪶' };
+    case 'leaf':    return { color: 0x4ec85a, emissive: 0x1a6a24, ico: '🍀' };
+    default:        return { color: 0xffd23f, emissive: 0x7a5800, ico: '⭐' };
+  }
+}
+function makeFavItem(charId) {
+  const c = charById(charId), fi = favInfo(charId);
+  const mat = new THREE.MeshLambertMaterial({ color: fi.color, emissive: fi.emissive, emissiveIntensity: 0.45, flatShading: true });
+  const g = new THREE.Group();
+  if (c.fav === 'bone') {
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.7, 7), mat); bar.rotation.z = Math.PI / 2; g.add(bar);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.17, 7, 6), mat); k.position.set(sx * 0.42, 0, sz * 0.16); g.add(k); }
+    g.scale.setScalar(0.95);
+  } else if (c.fav === 'ball') {
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.46, 10, 9), mat); g.add(ball);
+    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshBasicMaterial({ color: 0xffffff })); shine.position.set(0.16, 0.18, 0.3); g.add(shine);
+  } else if (c.fav === 'magnet') {
+    const u1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.6, 0.22), mat); u1.position.x = -0.2;
+    const u2 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.6, 0.22), mat); u2.position.x = 0.2;
+    const arc = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.22, 0.22), mat); arc.position.y = -0.3;
+    const tipMat = new THREE.MeshLambertMaterial({ color: 0xeeeef4, flatShading: true });
+    const t1 = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.16, 0.23), tipMat); t1.position.set(-0.2, 0.32, 0);
+    const t2 = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.16, 0.23), tipMat); t2.position.set(0.2, 0.32, 0);
+    g.add(u1, u2, arc, t1, t2); g.scale.setScalar(0.82);
+  } else if (c.fav === 'bolt') {
+    const shape = new THREE.Shape();
+    shape.moveTo(0.05, 0.5); shape.lineTo(-0.22, 0.04); shape.lineTo(-0.02, 0.04);
+    shape.lineTo(-0.12, -0.5); shape.lineTo(0.24, 0.08); shape.lineTo(0.04, 0.08); shape.lineTo(0.05, 0.5);
+    const bolt = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: false }), mat);
+    bolt.position.z = -0.08; g.add(bolt); g.scale.setScalar(1.0);
+  } else if (c.fav === 'ingot') {
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.46, 0.34, 4), mat); bar.rotation.y = Math.PI / 4; bar.scale.set(1, 0.7, 1.5); g.add(bar);
+  } else if (c.fav === 'feather') {
+    const quill = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.95, 5), mat); quill.scale.set(1, 1, 0.42); g.add(quill);
+    g.rotation.z = 0.3;
+  } else if (c.fav === 'leaf') {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 7), mat); leaf.scale.set(1, 0.32, 1.5); g.add(leaf);
+    const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.7, 5), new THREE.MeshLambertMaterial({ color: 0x2a6a24 })); vein.rotation.x = Math.PI / 2; vein.position.y = 0.06; g.add(vein);
+  } else {
+    const star = new THREE.Mesh(starGeo, mat); star.rotation.x = -Math.PI / 2; star.scale.setScalar(0.95); g.add(star);
+  }
+  return g;
+}
+
 function makeLevel(level) {
   const t = themeFor(level); curTheme = t; applyTheme(t);
   if (typeof setupAmbient === 'function') setupAmbient(t);
   if (islandGroup) world.remove(islandGroup);
   islandGroup = new THREE.Group();
-  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = [];
+  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = []; fenceGaps = [];
   goal = null; occupied.length = 0; avoid.length = 0;
   if (state) { state.puzzleSolved = false; state.puzzleStep = 0; }
 
@@ -457,10 +516,8 @@ function makeLevel(level) {
 
   // Sandy path – generated before terrain so buildTerrain can colour it
   generatePath();
-  buildTerrain(t);
-  addFencePerimeter(t);
 
-  // --- Neben-Insel mit Hängebrücke (ab Level 4): optionale Münz-Beute ---
+  // --- Neben-Insel mit Hängebrücke (ab Level 4) zuerst: legt Brücken-Lücke + Sperrzone an ---
   if (level >= 4) {
     const a = Math.random() * Math.PI * 2, subR = 9 + Math.random() * 4;
     const dist = edgeRadiusAt(a) + subR + 8;          // garantiert Brücken-Spannweite > 5
@@ -468,14 +525,27 @@ function makeLevel(level) {
     buildBridge(t, subChunks.length - 1);
   }
 
-  // --- Löcher (off-path) ---
+  // --- Löcher: Positionen VOR dem Terrain festlegen, damit echte Lücken hineingeschnitten werden ---
   const holeCount = Math.max(0, level - 1) + rint(0, 1);
   for (let i = 0; i < holeCount; i++) {
     const r = 1.4 + Math.random();
     const p = freeSpot(0.72, r + 1.6, { flat: true, offPath: true });
     holes.push({ x: p.x, z: p.z, r });
-    const hm = new THREE.Mesh(new THREE.CircleGeometry(r, 20), new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0.55, transparent: true }));
-    hm.rotation.x = -Math.PI / 2; hm.position.set(p.x, groundHeight(p.x, p.z) + 0.05, p.z); islandGroup.add(hm);
+  }
+
+  // Terrain (mit ausgeschnittenen Löchern), dann Zaun (kennt jetzt die Brücken-Lücke)
+  buildTerrain(t);
+  addFencePerimeter(t);
+
+  // --- Loch-Optik: in die echte Terrain-Lücke ein Schacht + schwarzer Grund + Rand ---
+  for (const h of holes) {
+    const gy = groundHeight(h.x, h.z), r = h.r;
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.5, 2.4, 20, 1, true), new THREE.MeshLambertMaterial({ color: 0x231610, flatShading: true, side: THREE.DoubleSide }));
+    wall.position.set(h.x, gy - 1.1, h.z); islandGroup.add(wall);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(r * 0.55, 20), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.set(h.x, gy - 2.25, h.z); islandGroup.add(floor);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(r + 0.05, 0.26, 6, 24), new THREE.MeshLambertMaterial({ color: t.low, flatShading: true }));
+    rim.rotation.x = -Math.PI / 2; rim.position.set(h.x, gy + 0.05, h.z); islandGroup.add(rim);
   }
 
   // --- Themen-Häuser/Strukturen (solide, off-path) ---
@@ -518,12 +588,12 @@ function makeLevel(level) {
   // --- Abrissbirnen ---
   if (level >= 3) for (let i = 0; i < Math.floor((level - 1) / 2); i++) addWreckingBall(level);
 
-  // --- Sterne (bevorzugt auf dem Sandpfad, über die größere Insel verteilt) ---
+  // --- Lieblings-Sammelobjekte (charakterspezifisch, bevorzugt auf dem Sandpfad) ---
+  const charId = state ? state.character : 'wuffel';
   const starCount = 6 + level * 2 + rint(0, 3);
   for (let i = 0; i < starCount; i++) {
     const p = freeSpot(0.92, 0.8, { preferPath: true });
-    const star = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x7a5800, emissiveIntensity: 0.4, flatShading: true }));
-    star.rotation.x = -Math.PI / 2;
+    const star = makeFavItem(charId);
     star.position.set(p.x, groundHeight(p.x, p.z) + 1.1, p.z); star.castShadow = true; star.userData.baseY = star.position.y;
     islandGroup.add(star); stars.push(star);
   }
@@ -568,9 +638,17 @@ function buildTerrain(t) {
       colors.push(c.r, c.g, c.b);
     }
   }
+  // Dreieck überspringen, wenn sein Schwerpunkt in einem Loch liegt -> echte Lücke im Boden
+  const triInHole = (i0, i1, i2) => {
+    if (!holes.length) return false;
+    const cx = (pos[i0 * 3] + pos[i1 * 3] + pos[i2 * 3]) / 3;
+    const cz = (pos[i0 * 3 + 2] + pos[i1 * 3 + 2] + pos[i2 * 3 + 2]) / 3;
+    return holes.some(h => Math.hypot(cx - h.x, cz - h.z) < h.r);
+  };
   for (let i = 0; i < rings; i++) for (let j = 0; j < segs; j++) {
     const a = rowStart[i] + j, b = rowStart[i] + j + 1, c = rowStart[i + 1] + j, d = rowStart[i + 1] + j + 1;
-    idx.push(a, b, c, c, b, d);
+    if (!triInHole(a, b, c)) idx.push(a, b, c);
+    if (!triInHole(c, b, d)) idx.push(c, b, d);
   }
   const skirtTop = rowStart[rings], base = pos.length / 3;
   const cDirt = new THREE.Color(t.dirt);
@@ -602,6 +680,8 @@ function buildBridge(t, subIdx = 0) {
   const subEdgeR = edgeRadiusAtChunk(sc, toMainAngle);
   const Bx = sc.x + Math.cos(toMainAngle) * (subEdgeR - 1.5);
   const Bz = sc.z + Math.sin(toMainAngle) * (subEdgeR - 1.5);
+  // Lücke im Zaun genau dort, wo die Hängebrücke beginnt
+  fenceGaps.push({ angle: toSubAngle, hw: 0.38 });
 
   const A = new THREE.Vector2(Ax, Az);  // .x=worldX, .y=worldZ
   const B = new THREE.Vector2(Bx, Bz);
@@ -706,8 +786,7 @@ function spawnOnChunk(sc, type, t) {
     if (occupied.some(o => Math.hypot(x - o.x, z - o.z) < o.r + 0.9)) continue;
     const gy = groundHeight(x, z);
     if (type === 'star') {
-      const star = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x7a5800, emissiveIntensity: 0.4, flatShading: true }));
-      star.rotation.x = -Math.PI / 2;
+      const star = makeFavItem(state ? state.character : 'wuffel');
       star.position.set(x, gy + 1.1, z); star.userData.baseY = star.position.y;
       islandGroup.add(star); stars.push(star); occupied.push({ x, z, r: 0.9 });
     } else if (type === 'coin') {
@@ -979,27 +1058,44 @@ function addButton(num, t) {
   buttons.push({ group: g, top, topMat, num, r: 1.35, activated: false, baseColor, explodeT: 0 });
 }
 
+function isNearGap(angle) {
+  for (const g of fenceGaps) {
+    let d = angle - g.angle;
+    while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+    if (Math.abs(d) < g.hw) return true;
+  }
+  return false;
+}
 function addFencePerimeter(t) {
+  // Zufällige Lücken erzeugen (2-4) — hier fällt man heraus und stirbt
+  const numGaps = 2 + rint(0, 2);
+  for (let g = 0; g < numGaps; g++) {
+    const a = (g / numGaps + Math.random() * 0.15) * Math.PI * 2;
+    fenceGaps.push({ angle: a, hw: 0.24 + Math.random() * 0.18 });
+  }
   const fMat = new THREE.MeshLambertMaterial({ color: t.fence || 0x5566aa, flatShading: true });
+  const postMat = new THREE.MeshLambertMaterial({ color: t.fence || 0x5566aa, flatShading: true });
   const count = Math.max(edgeSegs * 2, Math.round(islandR * 3.2));
+  let prevA = null, prevX = null, prevZ = null;
   for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2, r = edgeRadiusAt(a) - 0.55;
+    const a = (i / count) * Math.PI * 2;
+    if (isNearGap(a)) { prevA = null; prevX = null; prevZ = null; continue; }
+    const r = edgeRadiusAt(a) - 0.55;
     const x = Math.cos(a) * r, z = Math.sin(a) * r, gy = groundHeight(x, z);
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.0, 0.2), fMat);
-    post.position.set(x, gy + 0.3, z); islandGroup.add(post);
-    if (i > 0) {
-      const pa = ((i-1)/count)*Math.PI*2, pr = edgeRadiusAt(pa) - 0.55;
-      const px = Math.cos(pa)*pr, pz = Math.sin(pa)*pr;
-      const len = Math.hypot(x-px, z-pz);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.1, 0.22), postMat);
+    post.position.set(x, gy + 0.35, z); islandGroup.add(post);
+    if (prevA !== null) {
+      const len = Math.hypot(x - prevX, z - prevZ);
       if (len < 2.8) {
-        const midX = (x+px)/2, midZ = (z+pz)/2, ang = -Math.atan2(z-pz, x-px);
-        for (const oy of [0.72, 0.3]) {
+        const midX = (x + prevX) / 2, midZ = (z + prevZ) / 2, ang = -Math.atan2(z - prevZ, x - prevX);
+        for (const oy of [0.74, 0.28]) {
           const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.1), fMat);
           rail.position.set(midX, groundHeight(midX, midZ) + oy, midZ);
           rail.rotation.y = ang; islandGroup.add(rail);
         }
       }
     }
+    prevA = a; prevX = x; prevZ = z;
   }
 }
 
@@ -1137,66 +1233,91 @@ const legMeshes = []; let shieldFx, magnetFx, accessory = null;
 let eyeL, eyeR;
 const bodyMat = new THREE.MeshLambertMaterial({ color: 0xf0c070, flatShading: true });
 const legMat = new THREE.MeshLambertMaterial({ color: 0x5a8aff, flatShading: true });
-{
-  // Round blob body — chunky, flat-shaded sphere
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.72, 8, 7), bodyMat);
-  body.scale.set(1.08, 1.16, 1.08); body.position.y = 0.84; body.castShadow = true; rig.add(body);
-  // Eyes
-  const scleraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+// Character-independent FX (built once)
+shieldFx = new THREE.Mesh(new THREE.SphereGeometry(1.28, 12, 10), new THREE.MeshBasicMaterial({ color: 0x33c1ff, transparent: true, opacity: 0.28 })); shieldFx.position.y = 0.88; shieldFx.visible = false; player.add(shieldFx);
+magnetFx = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 7, 26), new THREE.MeshBasicMaterial({ color: 0xff5fa8, transparent: true, opacity: 0.55 })); magnetFx.position.y = 0.5; magnetFx.rotation.x = Math.PI / 2; magnetFx.visible = false; player.add(magnetFx);
+world.add(player);
+
+// --- Rig-Bausteine (gemeinsam genutzt für alle Charaktere) ---
+const eyeScleraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const eyePupilMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+function addEyes(eyeY, eyeZ, spread, scl = 1) {
   eyeL = new THREE.Group(); eyeR = new THREE.Group();
   for (const [grp, sx] of [[eyeL, -1], [eyeR, 1]]) {
-    const sc = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 7), scleraMat); grp.add(sc);
-    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.08, 7, 6), pupilMat); pu.position.z = 0.1; grp.add(pu);
-    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.036, 5, 5), scleraMat); sh.position.set(0.04, 0.04, 0.12); grp.add(sh);
-    grp.position.set(sx * 0.27, 1.04, 0.58); rig.add(grp);
+    const sc = new THREE.Mesh(new THREE.SphereGeometry(0.14 * scl, 8, 7), eyeScleraMat); grp.add(sc);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scl, 7, 6), eyePupilMat); pu.position.z = 0.1 * scl; grp.add(pu);
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.036 * scl, 5, 5), eyeScleraMat); sh.position.set(0.04, 0.04, 0.12 * scl); grp.add(sh);
+    grp.position.set(sx * spread, eyeY, eyeZ); rig.add(grp);
   }
-  // Round nub feet
-  for (const [lx, lz] of [[-0.28, 0.24], [0.28, 0.24], [-0.28, -0.24], [0.28, -0.24]]) {
-    const pivot = new THREE.Group(); pivot.position.set(lx, 0.2, lz);
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.25, 7, 6), legMat);
+}
+function addFeet(mat, spread = 0.28, fz = 0.24, fy = 0.2) {
+  for (const [lx, lz] of [[-spread, fz], [spread, fz], [-spread, -fz], [spread, -fz]]) {
+    const pivot = new THREE.Group(); pivot.position.set(lx, fy, lz);
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.25, 7, 6), mat);
     foot.scale.set(1, 0.64, 1.1); foot.position.y = -0.06; pivot.add(foot);
     rig.add(pivot); legMeshes.push(pivot);
   }
-  shieldFx = new THREE.Mesh(new THREE.SphereGeometry(1.28, 12, 10), new THREE.MeshBasicMaterial({ color: 0x33c1ff, transparent: true, opacity: 0.28 })); shieldFx.position.y = 0.88; shieldFx.visible = false; player.add(shieldFx);
-  magnetFx = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.06, 7, 26), new THREE.MeshBasicMaterial({ color: 0xff5fa8, transparent: true, opacity: 0.55 })); magnetFx.position.y = 0.5; magnetFx.rotation.x = Math.PI / 2; magnetFx.visible = false; player.add(magnetFx);
 }
-world.add(player);
 
 // Weicher Kontaktschatten unter der Figur (Diorama-Look, gut von oben sichtbar)
 const blobShadow = new THREE.Mesh(new THREE.CircleGeometry(0.9, 18), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false }));
 blobShadow.rotation.x = -Math.PI / 2; world.add(blobShadow);
 
-// Charakter-Accessoire (kleines Kennzeichen über dem Kopf, je Charakter)
-function buildAccessory(kind) {
-  if (!kind) return null;
-  const g = new THREE.Group(); let spin = false;
-  if (kind === 'spring') {
-    const s = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 6), new THREE.MeshLambertMaterial({ color: 0xcccccc })); s.position.y = 0.25;
-    const b = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshLambertMaterial({ color: 0xb24bd6, emissive: 0x4a1060, emissiveIntensity: 0.4 })); b.position.y = 0.55; g.add(s, b);
-  } else if (kind === 'halo') {
-    const h = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.06, 8, 18), new THREE.MeshBasicMaterial({ color: 0xff5fa8 })); h.rotation.x = Math.PI / 2; h.position.y = 0.42; g.add(h); spin = true;
-  } else if (kind === 'fin') {
-    const f = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.5, 4), new THREE.MeshLambertMaterial({ color: 0xffd23f, emissive: 0x886600, emissiveIntensity: 0.3 })); f.position.y = 0.34; f.rotation.y = Math.PI / 4; g.add(f);
-  } else if (kind === 'coin') {
-    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.07, 14), new THREE.MeshLambertMaterial({ color: 0xffcf4d, emissive: 0x6a4e00, emissiveIntensity: 0.4 })); c.position.y = 0.36; c.rotation.x = Math.PI / 2; g.add(c); spin = true;
-  } else if (kind === 'cloud') {
-    const m = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    for (let i = 0; i < 3; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(0.17 + Math.random() * 0.08, 7, 6), m); p.position.set((i - 1) * 0.2, 0.4, 0); g.add(p); }
-  } else if (kind === 'shell') {
-    const s = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x3a7d4a, flatShading: true })); s.position.y = 0.18; g.add(s);
-  } else if (kind === 'star') {
-    const st = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: 0xfff0a0, emissive: 0x886600, emissiveIntensity: 0.5 })); st.scale.setScalar(0.5); st.position.y = 0.5; g.add(st); spin = true;
+// --- Einzigartiger Charakter-Körper: jeder Charakter hat eine eigene Gestalt ---
+function buildCharacterRig(c) {
+  // Rig leeren
+  for (let i = rig.children.length - 1; i >= 0; i--) rig.remove(rig.children[i]);
+  legMeshes.length = 0; accessory = null;
+  const accMat = new THREE.MeshLambertMaterial({ color: c.acc2, flatShading: true });
+
+  // Grundkörper (Blob) — nutzt bodyMat, damit applyCharacter ihn umfärbt
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.72, 8, 7), bodyMat);
+  body.scale.set(1.08, 1.16, 1.08); body.position.y = 0.84; body.castShadow = true; rig.add(body);
+  addEyes(1.04, 0.58, 0.27);
+  addFeet(legMat);
+
+  if (c.id === 'wuffel') {            // 🐶 Hund: Schlappohren + Schnauze
+    for (const sx of [-1, 1]) { const ear = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.4, 0.13), accMat); ear.position.set(sx * 0.4, 1.3, 0.02); ear.rotation.z = sx * 0.35; ear.castShadow = true; rig.add(ear); }
+    const snout = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 7), bodyMat); snout.scale.set(1, 0.8, 0.9); snout.position.set(0, 0.86, 0.78); rig.add(snout);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 6), new THREE.MeshLambertMaterial({ color: 0x2a2a2a })); nose.position.set(0, 0.92, 0.96); rig.add(nose);
+  } else if (c.id === 'flummi') {     // 🟣 Hüpfball: glatte Kugel + Wackel-Antenne
+    body.scale.set(1.14, 1.12, 1.14); bodyMat.emissiveIntensity = 0.12;
+    accessory = new THREE.Group();
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 5), new THREE.MeshLambertMaterial({ color: 0xcfcfcf })); stick.position.y = 0.16;
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 7), accMat); ball.position.y = 0.36; accessory.add(stick, ball);
+    accessory.position.set(0, 1.56, 0); accessory.userData.spin = true; rig.add(accessory);
+  } else if (c.id === 'magneta') {    // 🧲 Magnet: zwei rote Hörner mit weißen Spitzen
+    for (const sx of [-1, 1]) {
+      const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.46, 7), new THREE.MeshLambertMaterial({ color: 0xff4444, flatShading: true })); prong.position.set(sx * 0.24, 1.42, -0.05); rig.add(prong);
+      const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.14, 7), new THREE.MeshLambertMaterial({ color: 0xeeeef4 })); tip.position.set(sx * 0.24, 1.68, -0.05); rig.add(tip);
+    }
+  } else if (c.id === 'turbo') {      // ⚡ Renner: Rückenflosse + Speed-Visor
+    const fin = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.7, 4), accMat); fin.position.set(0, 1.18, -0.42); fin.rotation.x = -0.5; fin.scale.set(0.7, 1, 0.32); fin.castShadow = true; rig.add(fin);
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.12, 0.12), accMat); visor.position.set(0, 1.2, 0.5); rig.add(visor);
+  } else if (c.id === 'goldi') {      // 🪙 Goldkönig: Krone + Münz-Emblem
+    accessory = new THREE.Group();
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.12, 9), accMat); accessory.add(band);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; const sp = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.2, 4), accMat); sp.position.set(Math.cos(a) * 0.24, 0.14, Math.sin(a) * 0.24); accessory.add(sp); }
+    accessory.position.set(0, 1.5, 0); accessory.userData.spin = true; rig.add(accessory);
+    const emblem = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 12), accMat); emblem.rotation.x = Math.PI / 2; emblem.position.set(0, 0.86, 0.74); rig.add(emblem);
+  } else if (c.id === 'feder') {      // 🪂 Wolkenwesen: Flausch-Puffs + Flügel
+    for (let i = 0; i < 3; i++) { const puff = new THREE.Mesh(new THREE.SphereGeometry(0.26, 7, 6), accMat); puff.position.set((i - 1) * 0.32, 1.32, -0.05); puff.castShadow = true; rig.add(puff); }
+    for (const sx of [-1, 1]) { const wing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.62, 4), accMat); wing.position.set(sx * 0.66, 0.92, -0.05); wing.rotation.z = sx * 1.1; wing.scale.set(1, 1, 0.32); rig.add(wing); }
+  } else if (c.id === 'panzi') {      // 🛡️ Schildkröte: Panzer-Kuppel auf dem Rücken
+    body.scale.set(1.1, 0.92, 1.12);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.66, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), accMat); shell.scale.set(1.1, 0.95, 1.1); shell.position.set(0, 0.96, -0.06); shell.castShadow = true; rig.add(shell);
+    for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; const bump = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), bodyMat); bump.position.set(Math.cos(a) * 0.34, 1.06, -0.06 + Math.sin(a) * 0.34); rig.add(bump); }
+  } else if (c.id === 'sternchen') {  // 🌟 Sternchen: rotierender Stern als Krönchen
+    accessory = new THREE.Group();
+    const st = new THREE.Mesh(starGeo, accMat); st.scale.setScalar(0.42); accessory.add(st);
+    accessory.position.set(0, 1.62, 0); accessory.userData.spin = true; rig.add(accessory);
   }
-  g.userData.spin = spin; return g;
 }
 function applyCharacter() {
   const c = charById(state.character);
-  bodyMat.color.setHex(c.body); legMat.color.setHex(c.leg);
+  bodyMat.color.setHex(c.body); legMat.color.setHex(c.leg); bodyMat.emissiveIntensity = 0;
   state.trait = c.trait;
-  if (accessory) { rig.remove(accessory); accessory = null; }
-  accessory = buildAccessory(c.acc);
-  if (accessory) { accessory.position.set(0, 1.82, 0.28); rig.add(accessory); }
+  buildCharacterRig(c);
 }
 
 // ===================================================================
@@ -1284,7 +1405,7 @@ const state = {
   animPhase: 0, landSquash: 0, leanX: 0, leanZ: 0, shake: 0,
   puzzleSolved: false, puzzleStep: 0, puzzleCdUntil: 0, coyoteUntil: 0,
   dashUntil: 0, dashReadyAt: 0, dashDirX: 0, dashDirZ: 1,
-  runStars: 0, runCoins: 0, runStart: 0,
+  runStars: 0, runCoins: 0, runStart: 0, transitioning: false,
 };
 const DASH_CD = 1400, DASH_DUR = 220, DASH_SPEED = 42;
 function saveProgress() { localStorage.setItem('landsliders_coins', state.coins); localStorage.setItem('landsliders_char', state.character); localStorage.setItem('landsliders_unlocked', JSON.stringify([...unlocked])); }
@@ -1341,7 +1462,7 @@ const overlay = document.getElementById('overlay'), startBtn = document.getEleme
 const shop = document.getElementById('shop'), shopBtn = document.getElementById('shopBtn'), shopClose = document.getElementById('shopClose'), lootBtn = document.getElementById('lootBtn'), shopCoins = document.getElementById('shopCoins'), lootCostEl = document.getElementById('lootCost'), charGrid = document.getElementById('charGrid');
 modeBtn.addEventListener('click', () => { mode = mode === MODES.SLIDE_WORLD ? MODES.CONTROL_CHARACTER : MODES.SLIDE_WORLD; modeBtn.textContent = mode === MODES.SLIDE_WORLD ? '🌍 Welt sliden' : '🐾 Figur steuern'; showToast(mode === MODES.SLIDE_WORLD ? 'Du ziehst die Welt unter der Figur weg' : 'Die Figur folgt deinem Finger'); });
 soundBtn.addEventListener('click', () => { Sound.init(); soundBtn.textContent = Sound.toggle() ? '🔊' : '🔇'; });
-function updateHUD() { scoreBadge.textContent = '🏆 ' + state.score; coinsBadge.textContent = '🪙 ' + state.coins; comboBadge.textContent = '×' + state.combo; updateVignette(); comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.06) + ')'; starBadge.textContent = '⭐ ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
+function updateHUD() { scoreBadge.textContent = '🏆 ' + state.score; coinsBadge.textContent = '🪙 ' + state.coins; comboBadge.textContent = '×' + state.combo; updateVignette(); comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.06) + ')'; starBadge.textContent = charById(state.character).favIco + ' ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
 let toastTimer = 0;
 function showToast(msg) { toast.textContent = msg; toast.classList.add('vis'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('vis'), 1700); }
 
@@ -1430,17 +1551,32 @@ function setPause(p) {
     document.getElementById('pauseStats').innerHTML = '<div class="statGrid"><span>🏆 Punkte</span><b>' + state.score + '</b><span>⭐ Sterne (Run)</span><b>' + state.runStars + '</b><span>🪙 Münzen (Run)</span><b>' + state.runCoins + '</b><span>🔥 Max-Combo</span><b>×' + state.comboMax + '</b><span>⏱ Zeit</span><b>' + secs + 's</b></div>';
   }
 }
-function quitToMenu() { state.running = false; state.paused = false; pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.remove('hidden'); overlay.querySelector('h1').textContent = '🏔️ Land Sliders 3D'; saveProgress(); updateMenuInfo(); }
+function quitToMenu() { state.running = false; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.remove('hidden'); overlay.querySelector('h1').textContent = '🏔️ Land Sliders 3D'; saveProgress(); updateMenuInfo(); }
 pauseBtn.addEventListener('click', () => setPause(!state.paused));
 document.getElementById('resumeBtn').addEventListener('click', () => setPause(false));
 document.getElementById('quitBtn').addEventListener('click', quitToMenu);
 dashBtn.addEventListener('click', e => { e.preventDefault(); tryDash(); });
 
 function startLevel(level) { state.level = level; state.total = makeLevel(level); state.collected = 0; respawn(); if (state.trait === 'shield') state.shield = true; showToast('🏝️ ' + themeFor(level).name + ' — Level ' + level); updateHUD(); }
+// Sauberer Level-Übergang: weiß überblenden, neues Level bauen, zurückblenden
+const levelFadeEl = document.getElementById('levelFade');
+function transitionToLevel(nextLevel) {
+  if (state.transitioning) return;
+  state.transitioning = true; state.vel.set(0, 0);
+  if (levelFadeEl) levelFadeEl.classList.add('fade-in');
+  setTimeout(() => {
+    if (!state.running) { state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); return; }
+    startLevel(nextLevel);                       // neues Level unter dem weißen Schleier aufbauen
+    setTimeout(() => {
+      if (levelFadeEl) levelFadeEl.classList.remove('fade-in');
+      setTimeout(() => { state.transitioning = false; }, 360);
+    }, 90);
+  }, 360);                                        // entspricht der CSS-Übergangszeit
+}
 function respawn() { state.pos.set(0, 0); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(0, 0); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(0, state.y, 0); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
-function startGame() { Sound.init(); applyCharacter(); state.lives = 3; state.score = 0; state.combo = 1; state.comboMax = 1; state.comboTimer = 0; state.shield = false; state.magnetUntil = 0; state.runStars = 0; state.runCoins = 0; state.runStart = performance.now(); state.dashUntil = 0; state.dashReadyAt = 0; state.paused = false; pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open'); state.running = true; startLevel(1); }
+function startGame() { Sound.init(); applyCharacter(); state.lives = 3; state.score = 0; state.combo = 1; state.comboMax = 1; state.comboTimer = 0; state.shield = false; state.magnetUntil = 0; state.runStars = 0; state.runCoins = 0; state.runStart = performance.now(); state.dashUntil = 0; state.dashReadyAt = 0; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open'); state.running = true; startLevel(1); }
 function endGame(won) {
-  state.running = false; state.paused = false; pauseEl.classList.remove('open');
+  state.running = false; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open');
   won ? Sound.win() : Sound.lose(); overlay.classList.remove('hidden');
   overlay.querySelector('h1').textContent = won ? '🏆 Durchgespielt!' : '💧 Game Over';
   const secs = Math.max(0, Math.round((performance.now() - state.runStart) / 1000));
@@ -1478,7 +1614,7 @@ function tryDash() {
 }
 
 function step(dt) {
-  if (!state.running || state.paused) return;
+  if (!state.running || state.paused || state.transitioning) return;
   if (state.comboTimer > 0) { state.comboTimer -= dt; if (state.comboTimer <= 0) { state.combo = 1; updateHUD(); } }
   state.prevVel.copy(state.vel);
 
@@ -1535,6 +1671,26 @@ function step(dt) {
     }
   }
   if (!blocked) { state.pos.x = nx; state.pos.y = nz; }
+
+  // --- Zaun-Kollision: solide Wand am Inselrand, außer an Lücken ---
+  // (nicht aktiv, wenn man auf einer Neben-Insel/Brücke ist — sonst würde der Zaun dort fälschlich greifen)
+  if (fenceGaps.length) {
+    let onSubOrBridge = false;
+    for (const sc of subChunks) if (insideChunkXZ(sc, state.pos.x, state.pos.y, -1.2)) { onSubOrBridge = true; break; }
+    if (!onSubOrBridge) for (const b of bridges) { if (bridgeSample(b, state.pos.x, state.pos.y).on) { onSubOrBridge = true; break; } }
+    const pAngle = Math.atan2(state.pos.y, state.pos.x);
+    if (!onSubOrBridge && !isNearGap(pAngle)) {
+      const fenceEdge = edgeRadiusAt(pAngle) - 0.82;
+      const pDist = Math.hypot(state.pos.x, state.pos.y);
+      if (pDist > fenceEdge) {
+        const norm = Math.max(pDist, 0.001);
+        const fnx = state.pos.x / norm, fnz = state.pos.y / norm;
+        state.pos.x = fnx * fenceEdge * 0.98; state.pos.y = fnz * fenceEdge * 0.98;
+        const dot = state.vel.x * fnx + state.vel.y * fnz;
+        if (dot > 0) { state.vel.x -= 1.6 * dot * fnx; state.vel.y -= 1.6 * dot * fnz; if (state.vel.length() > 3) Sound.bounce(); }
+      }
+    }
+  }
 
   // --- Brücke: zur Mitte ziehen + Seil eindrücken ---
   const surf = surfaceAt(state.pos.x, state.pos.y);
@@ -1661,11 +1817,12 @@ function step(dt) {
     if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) {
       islandGroup.remove(s); stars.splice(i, 1); state.collected++; state.runStars++; bumpCombo();
       const pts = Math.round(100 * state.combo * (tr === 'score' ? 1.5 : 1)); addScore(pts);
-      Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, 0xffd23f, 14, 5);
+      const fi = favInfo(state.character);
+      Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, fi.color, 14, 5);
       showFloat('+' + pts, s.position.x, s.position.y + 1.4, s.position.z, '#ffd23f');
       if (state.combo >= 3) { showFloat('Combo ×' + state.combo + '!', s.position.x, s.position.y + 2.2, s.position.z, '#ff9d45'); showFlash(0xffaa00, 0.18); }
       updateHUD();
-      if (state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast('⭐ Sterne komplett — jetzt das 🔢 Rätsel lösen!'); }
+      if (state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast(fi.ico + ' Alle gesammelt — jetzt das 🔢 Rätsel lösen!'); }
     }
   }
   // --- Münzen ---
@@ -1706,7 +1863,8 @@ function step(dt) {
   // --- Ziel ---
   if (goal && goal.userData.active && Math.hypot(state.pos.x - goal.position.x, state.pos.y - goal.position.z) < 1.6) {
     const bonus = state.lives * 200; addScore(bonus); burst(goal.position.x, goal.position.y + 1.6, goal.position.z, 0x55ffd0, 24, 8);
-    if (state.level >= 6) { endGame(true); return; } showToast('Geschafft! +' + bonus + ' Bonus'); startLevel(state.level + 1); return;
+    showFlash(0x66ffd0, 0.3); Sound.win();
+    if (state.level >= 6) { endGame(true); return; } showToast('Geschafft! +' + bonus + ' Bonus'); transitionToLevel(state.level + 1); return;
   }
 
   // --- Animations-Parameter ---
