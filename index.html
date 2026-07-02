@@ -23,8 +23,6 @@
   .ctrlBtn{pointer-events:auto;cursor:pointer;border:none;font-family:inherit;position:fixed;z-index:10;font-size:14px;background:rgba(0,0,0,0.64);color:#fff;border-radius:22px;padding:8px 16px;font-weight:900;box-shadow:0 2px 10px rgba(0,0,0,0.45);transition:transform .1s,background .15s;}
   .ctrlBtn:hover{background:rgba(40,40,60,0.82);}
   .ctrlBtn:active{transform:scale(0.93);}
-  #modeBtn{bottom:16px;left:50%;transform:translateX(-50%);}
-  #modeBtn:active{transform:translateX(-50%) scale(0.93);}
   #soundBtn{bottom:16px;left:14px;}
 
   /* ── Overlay / Menu ── */
@@ -35,8 +33,6 @@
   #overlay button{margin-top:16px;font-size:clamp(17px,2.8vw,22px);font-weight:800;padding:13px 38px;border:none;border-radius:32px;background:linear-gradient(135deg,#ffe040 0%,#ff9500 100%);color:#3a2000;cursor:pointer;box-shadow:0 6px 28px rgba(255,150,0,0.5);transition:transform .1s,box-shadow .1s;letter-spacing:.02em;}
   #overlay button:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(255,150,0,0.65);}
   #overlay button:active{transform:scale(0.95);box-shadow:0 2px 10px rgba(255,150,0,0.3);}
-  #overlay #shopBtn{background:linear-gradient(135deg,#d8a0ff 0%,#8e44ad 100%);color:#fff;box-shadow:0 6px 28px rgba(140,60,200,0.5);}
-  #overlay #shopBtn:hover{box-shadow:0 8px 36px rgba(140,60,200,0.65);}
 
   /* ── Toast ── */
   #toast{position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-6px);backdrop-filter:blur(16px);background:rgba(0,0,0,0.78);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:17px;font-weight:800;padding:10px 24px;border-radius:24px;opacity:0;transition:opacity .22s,transform .22s;z-index:15;pointer-events:none;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,0.5);white-space:nowrap;}
@@ -51,7 +47,6 @@
 
   /* ── Shop ── */
   .hidden{display:none !important;}
-  #overlay #shopBtn{font-size:17px;padding:11px 28px;margin-top:10px;}
   #shop{position:fixed;inset:0;z-index:25;background:rgba(6,10,20,0.97);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);color:#fff;display:none;flex-direction:column;align-items:center;padding:18px 14px 32px;overflow-y:auto;}
   #shop.open{display:flex;}
   #shop h2{margin:4px 0 2px;font-size:28px;letter-spacing:-.3px;}
@@ -60,6 +55,12 @@
   #lootBtn{font-size:18px;font-weight:800;padding:12px 28px;border:none;border-radius:26px;background:linear-gradient(135deg,#ffe040 0%,#ff9500 100%);color:#3a2000;cursor:pointer;box-shadow:0 6px 20px rgba(255,150,0,0.45);transition:transform .1s;margin-bottom:18px;}
   #lootBtn:disabled{filter:grayscale(.65) brightness(.65);cursor:default;box-shadow:none;transform:none;}
   #lootBtn:not(:disabled):hover{transform:translateY(-2px);}
+  #boostRow{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:2px 0 16px;width:100%;max-width:720px;}
+  .boostBtn{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit;font-weight:800;font-size:14px;color:#fff;background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.16);border-radius:16px;padding:10px 16px;cursor:pointer;transition:transform .1s,border-color .12s,background .12s;}
+  .boostBtn:hover:not(:disabled){transform:translateY(-2px);background:rgba(255,255,255,0.12);}
+  .boostBtn:disabled{cursor:default;opacity:.5;}
+  .boostBtn.armed{border-color:#5ce07a;background:rgba(90,224,122,0.18);color:#c8ffd8;}
+  .boostBtn .bc{font-size:12px;opacity:.82;font-weight:700;}
   #charGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px;width:100%;max-width:720px;}
   .charCard{background:rgba(255,255,255,0.055);border:2px solid rgba(255,255,255,0.1);border-radius:18px;padding:14px 10px 12px;text-align:center;cursor:pointer;transition:transform .12s,border-color .12s,background .12s;}
   .charCard:hover:not(.locked){transform:translateY(-3px);background:rgba(255,255,255,0.11);border-color:rgba(255,255,255,0.24);}
@@ -81,6 +82,11 @@
   #hubOverlay{position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:clamp(16px,4vh,36px);}
   #hubTitle{font-size:clamp(26px,6vw,48px);font-weight:900;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.8),0 0 40px rgba(255,210,60,0.6);letter-spacing:-0.5px;pointer-events:none;user-select:none;}
   #hubHint{margin-top:8px;font-size:clamp(13px,2vw,16px);color:rgba(255,255,255,0.85);text-shadow:0 2px 8px rgba(0,0,0,0.7);pointer-events:none;user-select:none;font-weight:700;}
+
+  /* ── Fever edge glow ── */
+  #feverGlow{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(ellipse at 50% 50%,transparent 52%,rgba(255,120,20,0.32) 100%);}
+  #feverGlow.on{opacity:1;animation:feverPulse 1.1s ease-in-out infinite;}
+  @keyframes feverPulse{0%,100%{opacity:.6}50%{opacity:1}}
 
   /* ── Combo timer bar ── */
   #comboBar{position:fixed;top:46px;left:50%;transform:translateX(-50%);width:120px;max-width:40vw;height:5px;border-radius:3px;background:rgba(0,0,0,0.4);overflow:hidden;z-index:10;opacity:0;transition:opacity .2s;pointer-events:none;}
@@ -124,20 +130,16 @@
   <div class="badge" id="livesBadge">❤️❤️❤️</div>
 </div>
 <button class="badge ctrlBtn" id="soundBtn">🔊</button>
-<button class="badge ctrlBtn" id="modeBtn" style="display:none">🌍 Welt sliden</button>
 <button class="badge ctrlBtn" id="pauseBtn" style="display:none">⏸</button>
 <button id="dashBtn" style="display:none"><span class="cd"></span>💨</button>
 <div id="comboBar" style="display:none"><div id="comboFill"></div></div>
 <div id="toast"></div>
 <div id="overlay" class="hidden">
   <h1>🏔️ Land Sliders 3D</h1>
-  <p><b>Wischen</b> verschiebt die Welt — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tippen</b> stoppt, <b>Doppeltippen</b> 💨 dasht. Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b> stoppt, <b>Shift</b> dasht, <b>P/Esc</b> pausiert.</p>
-  <p>Jeder Charakter sammelt sein <b>eigenes Lieblings-Objekt</b> (🦴 🎾 🧲 ⚡ 💰 🪶 🍀 ⭐). Sammle alle ein und löse das 🔢 Zahlen-Rätsel — drücke die Knöpfe in der Reihenfolge 1·2·3. Bei falscher Reihenfolge explodiert der Knopf und stößt dich zurück! Erst dann öffnet sich das 🌀 Portal. Nutze 🟢 Sprungfedern, sause Abhänge hinab und meide 👾 Jäger, 🟠 Schubser, 🔨 Abrissbirne und 🌋 Lava!</p>
-  <p>Pass auf die <b>Lücken im Zaun</b> auf — dort fällst du herunter! Sammle 🪙 Münzen (auch auf den Neben-Inseln über die 🌉 Hängebrücke) und schalte im 🎁 Lootbox-Shop neue Charaktere mit eigener Gestalt &amp; Fähigkeit frei!</p>
-  <p id="hiLine"></p>
-  <button id="startBtn">Spielen</button>
-  <button id="shopBtn">🎁 Charaktere &amp; Lootbox</button>
-  <button id="settingsBtn">⚙️ Einstellungen</button>
+  <p><b>Wische</b>, um die Welt unter deiner Figur zu verschieben — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tipp</b> stoppt, <b>Doppeltipp</b> 💨 dasht, und in der Luft wird der Dash zum <b>Slam</b>! Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b>, <b>Shift</b>, <b>P</b>.</p>
+  <p>Sammle die <b>Lieblings-Objekte</b> deines Charakters, löse das 🔢 Rätsel und spring durchs 🌀 Portal — Welt für Welt, immer tiefer. Combos ab <b>×8</b> zünden das 🔥 <b>Fieber</b> für Extra-Punkte. Meide 👾 Jäger, 🔨 Abrissbirnen und die Lücken im Zaun!</p>
+  <p>Im <b>Hub</b> gleitest du einfach zur Plattform deiner Wahl: Charaktere &amp; Boosts, Einstellungen — oder direkt ins Spiel.</p>
+  <button id="startBtn">Los geht's!</button>
 </div>
 <div id="pause">
   <h2>⏸ Pause</h2>
@@ -151,13 +153,19 @@
   <div class="setRow"><label>Wisch-Empfindlichkeit <span id="sensVal">1.0×</span></label><input type="range" id="sensSlider" min="0.5" max="1.8" step="0.05" value="1"></div>
   <div class="setRow"><label>Kamera-Abstand <span id="camVal">Normal</span></label><input type="range" id="camSlider" min="0.8" max="1.4" step="0.05" value="1"></div>
   <div class="setRow"><label>Grafik-Effekte</label><div class="segBtns" id="qualitySeg"><button data-q="high" class="on">Hoch</button><button data-q="low">Sparsam</button></div></div>
+  <div class="setRow"><label>Steuerung</label><div class="segBtns" id="modeSeg"><button data-m="-1" class="on">🌍 Welt sliden</button><button data-m="1">🐾 Figur steuern</button></div></div>
   <button class="menuBtn" id="settingsCloseBtn">✓ Fertig</button>
 </div>
 <div id="shop">
-  <h2>🎁 Charaktere</h2>
-  <p class="sub">Öffne Lootboxen mit Münzen und wähle deinen Charakter — jeder bringt eine eigene Fähigkeit mit.</p>
+  <h2>🎁 Charaktere &amp; Boosts</h2>
+  <p class="sub">Öffne Lootboxen, wähle deinen Charakter und rüste Boosts für den nächsten Run.</p>
   <div class="coinline">🪙 <span id="shopCoins">0</span> Münzen</div>
   <button id="lootBtn">🎁 Lootbox öffnen (<span id="lootCost">40</span> 🪙)</button>
+  <div id="boostRow">
+    <button class="boostBtn" data-boost="shield">🛡 Start-Schild<span class="bc">15 🪙</span></button>
+    <button class="boostBtn" data-boost="life">❤️ Extra-Leben<span class="bc">20 🪙</span></button>
+    <button class="boostBtn" data-boost="doubler">💰 Münz-Verdoppler<span class="bc">25 🪙</span></button>
+  </div>
   <div id="charGrid"></div>
   <button id="shopClose">← Zurück</button>
 </div>
@@ -165,6 +173,7 @@
   <div id="hubTitle">🏔️ Land Sliders 3D</div>
   <div id="hubHint">Gleite zu einer Plattform</div>
 </div>
+<div id="feverGlow"></div>
 <div id="vignette"></div>
 <div id="flash"></div>
 <div id="floatTexts"></div>
@@ -184,28 +193,37 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;   // filmic rolloff — emissives (lava/portal/gems) stop clipping
+renderer.toneMappingExposure = 1.12;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 70, 180);
 
-const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 400);
+const CAM_BASE_FOV = 48;
+const camera = new THREE.PerspectiveCamera(CAM_BASE_FOV, innerWidth / innerHeight, 0.1, 400);
+function punchFOV(amount) { state.fovPunch = Math.max(state.fovPunch || 0, amount); }
 
-const sun = new THREE.DirectionalLight(0xfff8f0, 2.4);
+const sun = new THREE.DirectionalLight(0xfff8f0, 2.3);
 sun.position.set(18, 38, 10);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.left = -70; sun.shadow.camera.right = 70;
-sun.shadow.camera.top = 70; sun.shadow.camera.bottom = -70;
-sun.shadow.bias = -0.0004;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -80; sun.shadow.camera.right = 80;
+sun.shadow.camera.top = 80; sun.shadow.camera.bottom = -80;
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
 scene.add(sun);
-const ambient = new THREE.AmbientLight(0xd8ecff, 1.9);
-scene.add(ambient);
+// Cool shadowless back/rim light opposite the sun — sculpts the sun-away faces so props read as solid plastic toys
+const rimLight = new THREE.DirectionalLight(0x9fc4ff, 0.7);
+rimLight.position.set(-16, 12, -14);
+scene.add(rimLight);
+// Sky/ground hemisphere fill (replaces flat ambient) — up-faces catch sky tint, down-faces catch ground tint
+const hemi = new THREE.HemisphereLight(0xd8ecff, 0x3a6a3a, 1.55);
+scene.add(hemi);
 
+let seaBaseHex = 0x1a80c8;
 const seaMat = new THREE.MeshLambertMaterial({ color: 0x1a80c8 });
-const sea = new THREE.Mesh(new THREE.CircleGeometry(320, 12), seaMat);
+const sea = new THREE.Mesh(new THREE.CircleGeometry(320, 48), seaMat);
 sea.rotation.x = -Math.PI / 2; sea.position.y = -12; scene.add(sea);
 
 const cloudGroup = new THREE.Group();
@@ -237,7 +255,13 @@ const THEMES = [
   { name: 'Himmel', style: 'sky',     sky: 0x98e4ff, sea: 0x3898d8, fog: 0xbcf0ff, ground: 0x62ccf8, low: 0x40a8e0, dirt: 0x6090c0, deco: 0x48c0e0, rock: 0x80c8e8, amb: 0xd8f4ff, path: 0xfff0a8, fence: 0x78ccff },
 ];
 function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
-function applyTheme(t) { scene.background.setHex(t.sky); scene.fog.color.setHex(t.fog); seaMat.color.setHex(t.sea); ambient.color.setHex(t.amb); scene.fog.near = 75; scene.fog.far = 190; }
+function applyTheme(t) {
+  scene.background.setHex(t.sky); scene.fog.color.setHex(t.fog);
+  seaMat.color.setHex(t.sea); seaBaseHex = t.sea;
+  // Hemisphere fill from the theme's warm ambient (sky-side) + ground tone (keeps Volcano glow, Snow cool)
+  hemi.color.setHex(t.amb); hemi.groundColor.setHex(t.low);
+  scene.fog.near = 75; scene.fog.far = 190;
+}
 
 // ===================================================================
 //  Charaktere (per Lootbox mit Münzen freischaltbar, je eigene Fähigkeit)
@@ -308,15 +332,20 @@ function insideChunkXZ(sc, x, z, margin = 0) {
   return ld < 0.001 || ld < edgeRadiusAtChunk(sc, Math.atan2(lz, lx)) - margin;
 }
 function generatePath() {
-  pathPts = [new THREE.Vector2(0, 0)];
-  let angle = Math.random() * Math.PI * 2;
-  for (let i = 0; i < 12; i++) {
-    const last = pathPts[pathPts.length - 1];
-    angle += (Math.random() - 0.5) * 1.1;
-    const step = 4 + Math.random() * 5;
-    const nx = last.x + Math.cos(angle) * step, nz = last.y + Math.sin(angle) * step;
-    if (!insideIsland(nx, nz, 3.5)) { angle += Math.PI * 0.55; continue; }
-    pathPts.push(new THREE.Vector2(nx, nz));
+  // Retry with a fresh start angle until the trail has enough length to guide the level
+  // (on narrow islands a single attempt can stall after 1-2 points)
+  for (let attempt = 0; attempt < 4; attempt++) {
+    pathPts = [new THREE.Vector2(0, 0)];
+    let angle = Math.random() * Math.PI * 2;
+    for (let i = 0; i < 18 && pathPts.length < 13; i++) {
+      const last = pathPts[pathPts.length - 1];
+      angle += (Math.random() - 0.5) * 1.1;
+      const step = 4 + Math.random() * 5;
+      const nx = last.x + Math.cos(angle) * step, nz = last.y + Math.sin(angle) * step;
+      if (!insideIsland(nx, nz, 3.5)) { angle += Math.PI * 0.55; continue; }
+      pathPts.push(new THREE.Vector2(nx, nz));
+    }
+    if (pathPts.length >= 6) return;
   }
 }
 function distToPath(x, z) {
@@ -338,12 +367,14 @@ function insideIsland(x, z, margin = 0) {
 function inHole(x, z) { return holes.some(h => Math.hypot(x - h.x, z - h.z) < h.r - 0.25); }
 
 function surfaceAt(px, pz, curY = 0) {
+  // Tight vertical bands so you only 'stand on' a deck when you're actually near its top —
+  // no yank-up from below, no mushy edge from the old 1.2u slop.
   for (const ev of elevators) {
-    if (Math.hypot(px - ev.x, pz - ev.z) < ev.r && curY >= ev.curY - 1.2)
+    if (Math.hypot(px - ev.x, pz - ev.z) < ev.r && curY >= ev.curY - 0.7 && curY <= ev.curY + 2.6)
       return { type: 'elevator', y: ev.curY };
   }
   for (const ep of elevatedPads) {
-    if (Math.hypot(px - ep.x, pz - ep.z) < ep.r && curY >= ep.y - 1.2)
+    if (Math.hypot(px - ep.x, pz - ep.z) < ep.r && curY >= ep.y - 0.5 && curY <= ep.y + 2.6)
       return { type: 'elevated', y: ep.y };
   }
   for (const b of bridges) { const s = bridgeSample(b, px, pz); if (s.on) return { type: 'bridge', y: s.y, b, s }; }
@@ -427,11 +458,15 @@ function freeSpot(maxFrac, reserve, opts = {}) {
     if (++found >= 18) break;
   }
   if (best) { occupied.push({ x: best.x, z: best.z, r: reserve }); return best; }
-  // Notfall: irgendeinen gültigen Punkt nehmen
-  for (let tries = 0; tries < 80; tries++) {
-    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * islandR * maxFrac;
-    const x = Math.cos(a) * r, z = Math.sin(a) * r;
-    if (insideIsland(x, z, reserve + 0.5) && !inHole(x, z)) { occupied.push({ x, z, r: reserve }); return { x, z }; }
+  // Notfall: gültigen Punkt nehmen, aber Mindestabstand so lange wie möglich wahren (kein Klumpen)
+  for (let relax = 0.75; relax >= 0; relax -= 0.25) {
+    for (let tries = 0; tries < 120; tries++) {
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * islandR * maxFrac;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (!insideIsland(x, z, reserve + 0.5) || inHole(x, z)) continue;
+      if (relax > 0 && occupied.some(o => Math.hypot(x - o.x, z - o.z) < (o.r + reserve) * relax)) continue;
+      occupied.push({ x, z, r: reserve }); return { x, z };
+    }
   }
   occupied.push({ x: 6, z: 6, r: reserve }); return { x: 6, z: 6 };
 }
@@ -443,6 +478,25 @@ const starGeo = makeStarGeometry();
 const coinGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.14, 16);
 const gemGeo = new THREE.IcosahedronGeometry(0.42, 0);
 const gumGeo = new THREE.SphereGeometry(0.42, 10, 8);
+const contactShadowGeo = new THREE.CircleGeometry(1, 16);
+// Prebuilt geometries are reused across every level rebuild — tag so disposeGroup() skips them
+for (const sg of [starGeo, coinGeo, gemGeo, gumGeo, contactShadowGeo]) sg.userData = { shared: true };
+// Free every non-shared geometry/material/texture in a group before we drop it (prevents VRAM growth over a run)
+function disposeGroup(g) {
+  if (!g) return;
+  g.traverse(o => {
+    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared) && o.geometry.dispose) o.geometry.dispose();
+    const m = o.material;
+    if (Array.isArray(m)) m.forEach(x => { if (x) { x.map && x.map.dispose && x.map.dispose(); x.dispose && x.dispose(); } });
+    else if (m) { m.map && m.map.dispose && m.map.dispose(); m.dispose && m.dispose(); }
+  });
+}
+// Drop a soft dark contact-shadow disc under a hovering prop so it reads as grounded (diorama trick)
+function addContactShadow(parent, x, gy, z, r, op = 0.24) {
+  const s = new THREE.Mesh(contactShadowGeo, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: op, depthWrite: false }));
+  s.rotation.x = -Math.PI / 2; s.position.set(x, gy + 0.04, z); s.scale.setScalar(r); parent.add(s);
+  return s;
+}
 const rint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 // Themen-Sammelitem: Münze (Wiese), Edelstein, Glut oder Gummi je nach Welt
@@ -512,7 +566,7 @@ function makeFavItem(charId) {
 function makeLevel(level) {
   const t = themeFor(level); curTheme = t; applyTheme(t);
   if (typeof setupAmbient === 'function') setupAmbient(t);
-  if (islandGroup) world.remove(islandGroup);
+  if (islandGroup) { world.remove(islandGroup); disposeGroup(islandGroup); }
   islandGroup = new THREE.Group();
   stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = []; fenceGaps = [];
   elevatedPads = []; elevators = []; countObjects = []; puzzleMode = 'sequence'; countPuzzleAns = 0;
@@ -579,6 +633,9 @@ function makeLevel(level) {
     rim.rotation.x = -Math.PI / 2; rim.position.set(h.x, gy + 0.05, h.z); islandGroup.add(rim);
   }
 
+  // --- Abrissbirnen zuerst: ihr Schwungbereich reserviert Platz für alles Weitere ---
+  if (level >= 3) for (let i = 0; i < Math.min(3, Math.floor((level - 1) / 2)); i++) addWreckingBall(Math.min(level, 10));
+
   // --- Themen-Häuser/Strukturen (solide, off-path) ---
   const houseCount = 1 + Math.floor(level / 2) + rint(0, 1);
   for (let i = 0; i < houseCount; i++) addThemeHouse(freeSpot(0.78, 2.4, { offPath: true }), t);
@@ -625,12 +682,11 @@ function makeLevel(level) {
     }
   }
 
-  // --- Gegner (themenpassend eingefärbt) ---
-  for (let i = 0; i < Math.max(0, level - 1) + rint(0, 1); i++) spawnEnemy('chaser', level, t);
-  for (let i = 0; i < Math.floor(level / 2); i++) spawnEnemy('pusher', level, t);
-
-  // --- Abrissbirnen ---
-  if (level >= 3) for (let i = 0; i < Math.floor((level - 1) / 2); i++) addWreckingBall(level);
+  // --- Gegner (themenpassend eingefärbt; für den endlosen Abstieg gedeckelt, damit es fordernd aber fair bleibt) ---
+  const chasers = Math.min(6, Math.max(0, level - 1) + rint(0, 1));
+  const pushers = Math.min(4, Math.floor(level / 2));
+  for (let i = 0; i < chasers; i++) spawnEnemy('chaser', Math.min(level, 10), t);
+  for (let i = 0; i < pushers; i++) spawnEnemy('pusher', Math.min(level, 10), t);
 
   // --- Lieblings-Sammelobjekte (charakterspezifisch, bevorzugt auf dem Sandpfad) ---
   const charId = state ? state.character : 'wuffel';
@@ -662,8 +718,10 @@ function makeLevel(level) {
   goal = makeGoal(); goal.position.set(gp.x, groundHeight(gp.x, gp.z), gp.z); islandGroup.add(goal);
 
   world.add(islandGroup);
-  if (state) state.total = stars.length;
-  return stars.length;
+  // Bonus-Sterne (auf Plattformen) zählen NICHT zum Pflicht-Total — sonst droht ein Soft-Lock
+  const required = stars.filter(s => !s.userData.bonus).length;
+  if (state) state.total = required;
+  return required;
 }
 
 function buildTerrain(t) {
@@ -881,20 +939,21 @@ function addVine(x, topY, z, t) {
 function addWreckingBall(level) {
   const p = freeSpot(0.7, 2.6);
   const gy = groundHeight(p.x, p.z);
-  const anchorY = gy + 5.2, len = 4.3;           // tiefster Punkt ~ gy+0.9 -> trifft Spieler!
+  avoid.push({ x: p.x, z: p.z, r: 5 });            // Schwungbereich SOFORT reservieren, damit nichts hineinspawnt
+  const armA = Math.random() * Math.PI * 2;        // zufällige Arm-Richtung statt immer +x
+  const anchorY = gy + 5.2, len = 4.3;             // tiefster Punkt ~ gy+0.9 -> trifft Spieler!
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, anchorY - gy + 0.4, 8), new THREE.MeshLambertMaterial({ color: 0x556070 }));
   pole.position.set(p.x, gy + (anchorY - gy) / 2, p.z); pole.castShadow = true; islandGroup.add(pole);
   pole.userData.r = 0.4; obstacles.push(pole);     // Mast ist solide
   const arm = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.2, 0.2), new THREE.MeshLambertMaterial({ color: 0x556070 }));
-  arm.position.set(p.x + 1.3, anchorY, p.z); islandGroup.add(arm);
-  const anchor = new THREE.Vector3(p.x + 2.4, anchorY, p.z), n = 6, pts = [];
+  arm.position.set(p.x + Math.cos(armA) * 1.3, anchorY, p.z + Math.sin(armA) * 1.3); arm.rotation.y = -armA; islandGroup.add(arm);
+  const anchor = new THREE.Vector3(p.x + Math.cos(armA) * 2.4, anchorY, p.z + Math.sin(armA) * 2.4), n = 6, pts = [];
   for (let i = 0; i <= n; i++) pts.push(new THREE.Vector3(anchor.x, anchor.y - len * (i / n), anchor.z));
   const rope = new Rope(pts, len / n, { iter: 16, grav: 32, damp: 0.994, wind: 22 + level * 3 }); rope.pin(0);
-  rope.pts[n].pos.x += 1.4;
+  rope.pts[n].pos.x += Math.cos(armA + Math.PI / 2) * 1.4; rope.pts[n].pos.z += Math.sin(armA + Math.PI / 2) * 1.4;
   const line = ropeLine(rope, 0x333333); islandGroup.add(line); ropes.push(line);
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.95, 16, 12), new THREE.MeshLambertMaterial({ color: 0x444a52, flatShading: true })); ball.castShadow = true; islandGroup.add(ball);
   hazards.push({ rope, ball, r: 0.95 });
-  avoid.push({ x: p.x, z: p.z, r: 5 });
 }
 
 function addPad(level) {
@@ -1157,17 +1216,24 @@ function spawnEnemy(kind, level, t) {
   const e = new THREE.Group();
   const pal = enemyPalette(t);
   const color = kind === 'pusher' ? pal.pusher : pal.chaser;
-  const bodyGeo = kind === 'pusher' ? new THREE.BoxGeometry(1.3, 1.2, 1.3) : new THREE.SphereGeometry(0.7, 10, 8);
+  const bodyGeo = kind === 'pusher' ? new THREE.BoxGeometry(1.3, 1.2, 1.3) : new THREE.SphereGeometry(0.7, 12, 10);
   const body = new THREE.Mesh(bodyGeo, new THREE.MeshLambertMaterial({ color, emissive: pal.emissive, flatShading: true })); body.position.y = kind === 'pusher' ? 0.9 : 0.8; body.castShadow = true;
   const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff }), pupMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
   const eyeY = kind === 'pusher' ? 1.2 : 1.05, eyeZ = kind === 'pusher' ? 0.66 : 0.55;
   for (const sx of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), eyeMat); eye.position.set(sx * 0.28, eyeY, eyeZ);
-    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), pupMat); pup.position.set(sx * 0.28, eyeY, eyeZ + 0.13);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 9, 8), eyeMat); eye.position.set(sx * 0.28, eyeY, eyeZ);
+    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), pupMat); pup.position.set(sx * 0.28, eyeY, eyeZ + 0.13);
     e.add(eye, pup);
+    // wütende Braue über jedem Auge — liest sich sofort als Gegner
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.07, 0.08), pupMat);
+    brow.position.set(sx * 0.28, eyeY + 0.2, eyeZ + 0.04); brow.rotation.z = -sx * 0.45; e.add(brow);
   }
   e.add(body);
-  if (kind === 'pusher') for (const sx of [-1, 1]) { const fist = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 8), new THREE.MeshLambertMaterial({ color: pal.accent })); fist.position.set(sx * 0.55, 0.8, 0.8); e.add(fist); }
+  // weicher Kontaktschatten wandert automatisch mit (Kind des Gegners)
+  const eShadow = new THREE.Mesh(contactShadowGeo, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false }));
+  eShadow.rotation.x = -Math.PI / 2; eShadow.position.y = 0.04; eShadow.scale.setScalar(kind === 'pusher' ? 0.95 : 0.8); e.add(eShadow);
+  if (kind === 'pusher') for (const sx of [-1, 1]) { const fist = new THREE.Mesh(new THREE.SphereGeometry(0.34, 9, 8), new THREE.MeshLambertMaterial({ color: pal.accent })); fist.position.set(sx * 0.55, 0.8, 0.8); e.add(fist); }
+  else for (const [lx, lz] of [[-0.3, 0.2], [0.3, 0.2], [-0.3, -0.2], [0.3, -0.2]]) { const foot = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), new THREE.MeshLambertMaterial({ color: pal.accent, flatShading: true })); foot.scale.set(1, 0.6, 1.1); foot.position.set(lx, 0.12, lz); e.add(foot); }
   const p = freeSpot(0.75, 1.3);
   e.position.set(p.x, groundHeight(p.x, p.z), p.z);
   e.userData = { kind, body, heading: Math.random() * Math.PI * 2, speed: (kind === 'pusher' ? 2.0 : 2.7) + level * 0.4, retarget: 0, bob: Math.random() * 6, windup: 0, cooldown: 0, r: kind === 'pusher' ? 0.8 : 0.7 };
@@ -1181,30 +1247,34 @@ function spawnPowerup(kind) {
 }
 
 // --- Seltener Edelstein (großer Münz- & Punkte-Bonus) ---
-function addGem(t) {
+function addGemAt(x, z) {
   const g = new THREE.Group();
   const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0), new THREE.MeshLambertMaterial({ color: 0x59f0ff, emissive: 0x0a6a88, emissiveIntensity: 0.6, flatShading: true }));
   gem.position.y = 1.25; g.add(gem);
-  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.05, 6, 18), new THREE.MeshBasicMaterial({ color: 0x9ff4ff, transparent: true, opacity: 0.6 }));
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.05, 6, 18), new THREE.MeshBasicMaterial({ color: 0x9ff4ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
   halo.rotation.x = Math.PI / 2; halo.position.y = 1.25; g.add(halo);
-  const p = freeSpot(0.92, 1.1, { offPath: true });
-  const gy = groundHeight(p.x, p.z);
-  g.position.set(p.x, gy, p.z); g.userData = { gem, halo, baseY: gy + 1.25 };
+  const gy = groundHeight(x, z);
+  g.position.set(x, gy, z); g.userData = { gem, halo, baseY: gy + 1.25 };
   islandGroup.add(g); gems.push(g);
+  return g;
 }
+function addGem(t) { const p = freeSpot(0.92, 1.1, { offPath: true }); addGemAt(p.x, p.z); }
 
 // ===================================================================
 //  Erhöhte Plattformen & Aufzüge
 // ===================================================================
 function addElevatedPlatform(t, level) {
-  // Pick a spot that's comfortably inside the island
-  const a = Math.random() * Math.PI * 2, rad = islandR * (0.3 + Math.random() * 0.3);
+  // Pick a spot that's comfortably inside the island, biased inward so access always fits
+  const a = Math.random() * Math.PI * 2, rad = islandR * (0.24 + Math.random() * 0.24);
   const px = Math.cos(a) * rad, pz = Math.sin(a) * rad;
-  if (!insideIsland(px, pz, 4)) return;
+  if (!insideIsland(px, pz, 5)) return;
   const gy = groundHeight(px, pz);
-  const platH = gy + 3.8 + Math.random() * 2.0;
-  const platR = 3.2 + Math.random() * 1.5;
+  const platH = gy + 3.0 + Math.random() * 1.4;   // deck 3.0–4.4 above ground so a spring can always clear it
+  const platR = 3.0 + Math.random() * 1.3;
   occupied.push({ x: px, z: pz, r: platR + 1 });
+
+  // Contact shadow on the ground so the deck reads as grounded on its pillar
+  addContactShadow(islandGroup, px, gy, pz, platR * 0.95, 0.26);
 
   // Platform deck — chunky Land Sliders style
   const deckMat = new THREE.MeshLambertMaterial({ color: t.path || 0xf0b840, flatShading: true });
@@ -1225,41 +1295,62 @@ function addElevatedPlatform(t, level) {
   }
   elevatedPads.push({ x: px, z: pz, y: platH + 0.22, r: platR - 0.3 });
 
-  // Stars on the elevated platform (bonus items)
+  // BONUS stars on the platform — tagged so they never count toward the required total (no soft-lock)
   const charId = state ? state.character : 'wuffel';
   const epStars = 2 + rint(0, 1);
   for (let i = 0; i < epStars; i++) {
     const da = Math.random() * Math.PI * 2, dr = Math.random() * (platR - 1.0);
     const sx = px + Math.cos(da) * dr, sz = pz + Math.sin(da) * dr;
     const star = makeFavItem(charId);
-    star.position.set(sx, platH + 1.3, sz); star.userData.baseY = star.position.y;
+    star.position.set(sx, platH + 1.3, sz); star.userData.baseY = star.position.y; star.userData.bonus = true;
+    star.scale.setScalar(1.15);   // slightly bigger to read as premium loot
     islandGroup.add(star); stars.push(star);
   }
-
-  // Place elevator next to platform
-  const liftA = a + Math.PI / 6;
-  const liftX = px + Math.cos(liftA) * (platR + 1.8), liftZ = pz + Math.sin(liftA) * (platR + 1.8);
-  if (insideIsland(liftX, liftZ, 2)) addElevator(liftX, liftZ, gy, platH, t);
-  // Also add a spring pad for alternate access
-  const springA = a + Math.PI * 0.85;
-  const spX = px + Math.cos(springA) * (platR + 2.5), spZ = pz + Math.sin(springA) * (platR + 2.5);
-  if (insideIsland(spX, spZ, 1.5)) {
-    const g = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.45, 0.28, 6), new THREE.MeshLambertMaterial({ color: 0xaa1111, flatShading: true })); base.position.y = 0.14;
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.18, 6), new THREE.MeshLambertMaterial({ color: 0xff3333, emissive: 0x660000 })); top.position.y = 0.38;
-    g.add(base, top); g.position.set(spX, groundHeight(spX, spZ), spZ);
-    g.userData = { top, squash: 0, r: 1.1, power: 14 + level * 0.5 };
-    islandGroup.add(g); pads.push(g);
-    occupied.push({ x: spX, z: spZ, r: 1.5 });
+  // Guaranteed access #1: an elevator on the interior-facing side (angle toward island center)
+  let liftA = Math.atan2(-pz, -px) + (Math.random() - 0.5) * 0.5;
+  let placed = false;
+  for (let tryI = 0; tryI < 6 && !placed; tryI++) {
+    const dcap = platR + 1.7;
+    const lx = px + Math.cos(liftA) * dcap, lz = pz + Math.sin(liftA) * dcap;
+    if (insideIsland(lx, lz, 1.4)) placed = addElevator(lx, lz, gy, platH, t);
+    liftA += 0.7;
+  }
+  // Guaranteed access #2: a correctly-sized spring pad (peak height always clears the deck + margin)
+  let sPlaced = false;
+  let springA = a + Math.PI * 0.8;
+  for (let tryI = 0; tryI < 6 && !sPlaced; tryI++) {
+    const spX = px + Math.cos(springA) * (platR + 2.4), spZ = pz + Math.sin(springA) * (platR + 2.4);
+    if (insideIsland(spX, spZ, 1.5) && !occupied.some(o => Math.hypot(spX - o.x, spZ - o.z) < o.r + 1.2)) {
+      const spGy = groundHeight(spX, spZ);
+      const power = Math.sqrt(2 * GRAV * ((platH + 0.22) - spGy + 1.1));   // peak = power^2/(2·GRAV) clears deck +1.1u
+      const g = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.45, 0.28, 6), new THREE.MeshLambertMaterial({ color: 0xaa1111, flatShading: true })); base.position.y = 0.14;
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.18, 6), new THREE.MeshLambertMaterial({ color: 0xff3333, emissive: 0x660000 })); top.position.y = 0.38;
+      g.add(base, top); g.position.set(spX, spGy, spZ);
+      g.userData = { top, squash: 0, r: 1.1, power };
+      islandGroup.add(g); pads.push(g);
+      occupied.push({ x: spX, z: spZ, r: 1.5 });
+      sPlaced = true;
+    }
+    springA += 0.9;
+  }
+  // If neither route fit (tiny/awkward island), demote the bonus stars to the ground so nothing is stranded
+  if (!placed && !sPlaced) {
+    for (const s of stars) if (s.userData.bonus && Math.hypot(s.position.x - px, s.position.z - pz) < platR + 0.5) {
+      const gp = freeSpot(0.9, 0.8, { preferPath: true });
+      s.position.set(gp.x, groundHeight(gp.x, gp.z) + 1.1, gp.z); s.userData.baseY = s.position.y;
+    }
   }
 }
 
 function addElevator(ex, ez, fromY, toY, t) {
-  if (!insideIsland(ex, ez, 1.5)) return;
+  if (!insideIsland(ex, ez, 1.4)) return false;
   const gy = groundHeight(ex, ez);
   const lowY = gy + 0.15, highY = toY;
   const travelH = highY - lowY;
-  if (travelH < 1.5) return;
+  if (travelH < 1.5) return false;
+  // Contact shadow under the shaft base
+  addContactShadow(islandGroup, ex, gy, ez, 1.5, 0.22);
 
   const mat = new THREE.MeshLambertMaterial({ color: t.fence || 0x7a80d0, flatShading: true });
   const platform = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.28, 2.2), mat);
@@ -1276,16 +1367,17 @@ function addElevator(ex, ez, fromY, toY, t) {
     new THREE.MeshLambertMaterial({ color: t.rock, flatShading: true }));
   base.position.set(ex, gy, ez); islandGroup.add(base);
 
-  const ev = { platform, x: ex, z: ez, r: 1.0, lowY, highY, curY: lowY, phase: Math.random() * Math.PI * 2, speed: 0.55 + Math.random() * 0.3 };
+  const ev = { platform, x: ex, z: ez, r: 1.1, lowY, highY, curY: lowY, phase: Math.random() * Math.PI * 2, speed: 0.55 + Math.random() * 0.3, rider: false };
   elevators.push(ev);
   occupied.push({ x: ex, z: ez, r: 1.5 });
+  return true;
 }
 
 // ===================================================================
 //  Zähl-Rätsel: Zähle die farbigen Objekte, drücke die richtige Taste
 // ===================================================================
 function addCountPuzzle(t) {
-  const n = 3 + rint(0, 3);  // 3–6 objects
+  const n = 3 + rint(0, 2);  // 3–5 objects (capped so the count is always readable)
   countPuzzleAns = n; puzzleMode = 'count';
   const PCOLS = [0xff4444, 0x44cc88, 0xffd23f, 0x55aaff];
   const PNAMES = ['roten', 'grünen', 'gelben', 'blauen'];
@@ -1294,26 +1386,32 @@ function addCountPuzzle(t) {
   const gt = GEOS[rint(0, 2)];
 
   for (let i = 0; i < n; i++) {
-    const p = freeSpot(0.88, 0.9, { offPath: false });
+    // Flat, open ground, well clear of tall props so no object can hide behind geometry
+    let p, tries = 0;
+    do { p = freeSpot(0.86, 1.6, { flat: true, offPath: true }); tries++; }
+    while (tries < 6 && obstacles.some(o => Math.hypot(p.x - o.position.x, p.z - o.position.z) < o.userData.r + 2.6));
     const mat = new THREE.MeshLambertMaterial({ color: col, emissive: col, emissiveIntensity: 0.4, flatShading: true });
-    const geo = gt === 'sphere' ? new THREE.SphereGeometry(0.4, 8, 7)
-              : gt === 'box' ? new THREE.BoxGeometry(0.65, 0.65, 0.65)
-              : new THREE.IcosahedronGeometry(0.45, 0);
+    const geo = gt === 'sphere' ? new THREE.SphereGeometry(0.44, 9, 8)
+              : gt === 'box' ? new THREE.BoxGeometry(0.7, 0.7, 0.7)
+              : new THREE.IcosahedronGeometry(0.5, 0);
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(p.x, groundHeight(p.x, p.z) + 0.9, p.z);
-    mesh.userData.baseY = mesh.position.y;
+    mesh.position.set(p.x, groundHeight(p.x, p.z) + 1.5, p.z);   // raised so it reads clearly from the diorama camera
+    mesh.userData.baseY = mesh.position.y; mesh.userData.idx = i; mesh.userData.mat = mat;
+    // bright beacon post so all N are unmistakably visible + countable
+    const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.5, 5), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    beacon.position.y = -0.75; mesh.add(beacon);
     islandGroup.add(mesh); countObjects.push(mesh);
   }
 
-  // 4 answer pads: one correct, three wrong
+  // 4 answer pads: one correct, three wrong — ALL identically coloured so nothing gives the answer away
   const opts = new Set([n]);
-  while (opts.size < 4) opts.add(Math.max(1, n + rint(-3, 3)));
+  while (opts.size < 4) opts.add(Math.max(1, n + rint(-2, 3)));
   const shuffled = [...opts].sort(() => Math.random() - 0.5);
   for (const opt of shuffled) {
     const p = freeSpot(0.82, 1.7, { flat: true });
     const g = new THREE.Group();
     const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.28, 0.3, 8), new THREE.MeshLambertMaterial({ color: 0x2a2a33, flatShading: true })); base.position.y = 0.15;
-    const baseCol = opt === n ? 0x226622 : 0x4a5568;
+    const baseCol = 0x4a5568;
     const topMat = new THREE.MeshLambertMaterial({ color: baseCol, emissive: 0x101820, flatShading: true });
     const top = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.98, 0.24, 8), topMat); top.position.y = 0.4; top.castShadow = true;
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), new THREE.MeshBasicMaterial({ map: makeNumberTexture(opt), transparent: true, depthWrite: false }));
@@ -1322,17 +1420,17 @@ function addCountPuzzle(t) {
     g.position.set(p.x, groundHeight(p.x, p.z), p.z); islandGroup.add(g);
     buttons.push({ group: g, top, topMat, num: opt, r: 1.35, activated: false, baseColor: baseCol, explodeT: 0, isCountAns: opt === n });
   }
-  if (state) state.countHint = `Zähle alle ${PNAMES[ci]} Objekte!`;
+  if (state) state.countHint = `Zähle alle ${PNAMES[ci]} Objekte (${gt === 'sphere' ? 'Kugeln' : gt === 'box' ? 'Würfel' : 'Kristalle'})!`;
 }
 
 // ===================================================================
 //  Atmosphäre: themenpassende Umgebungspartikel (Schnee, Glut, Blüten …)
 // ===================================================================
 let ambientGroup = null, ambientParticles = [];
-const ambGeoBall = new THREE.SphereGeometry(0.15, 6, 5);
-const ambGeoFlat = new THREE.BoxGeometry(0.32, 0.05, 0.32);
+const ambGeoBall = new THREE.SphereGeometry(0.15, 6, 5); ambGeoBall.userData = { shared: true };
+const ambGeoFlat = new THREE.BoxGeometry(0.32, 0.05, 0.32); ambGeoFlat.userData = { shared: true };
 function setupAmbient(t) {
-  if (ambientGroup) { scene.remove(ambientGroup); }
+  if (ambientGroup) { scene.remove(ambientGroup); disposeGroup(ambientGroup); }
   ambientGroup = new THREE.Group(); scene.add(ambientGroup); ambientParticles = [];
   const n = settings.quality === 'low' ? 20 : 60;
   let color = 0xaef07a, geo = ambGeoFlat, rise = false, flat = true, op = 0.8;
@@ -1385,9 +1483,9 @@ function makeGoal() {
   const ring3 = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.08, 7, 18), ringMat3); ring3.position.y = 2.4; ring3.rotation.set(Math.PI / 6, Math.PI / 4, 0);
   g.add(ring1, ring2, ring3);
   // Beam + inner glow (invisible until activated)
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 9, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0x44ffcc, transparent: true, opacity: 0, side: THREE.DoubleSide })); beam.position.y = 7;
-  const glow = new THREE.Mesh(new THREE.SphereGeometry(1.1, 10, 9), new THREE.MeshBasicMaterial({ color: 0x33ffcc, transparent: true, opacity: 0 })); glow.position.y = 2.4;
-  const groundGlow = new THREE.Mesh(new THREE.CircleGeometry(2.2, 20), new THREE.MeshBasicMaterial({ color: 0x44ffaa, transparent: true, opacity: 0 }));
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 9, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0x44ffcc, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.y = 7;
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(1.1, 10, 9), new THREE.MeshBasicMaterial({ color: 0x33ffcc, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.y = 2.4;
+  const groundGlow = new THREE.Mesh(new THREE.CircleGeometry(2.2, 20), new THREE.MeshBasicMaterial({ color: 0x44ffaa, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.y = 0.02;
   g.add(beam, glow, groundGlow);
   // Orbiting particles (6 bright orbs)
@@ -1405,7 +1503,8 @@ function makeGoal() {
 //  Spielfigur — einfacher Land-Sliders-Blob
 // ===================================================================
 const player = new THREE.Group(), rig = new THREE.Group(); player.add(rig);
-const legMeshes = []; let shieldFx, magnetFx, accessory = null;
+const legMeshes = [], animParts = [];   // animParts: kleine Sekundär-Animationen (Schwanzwedeln etc.)
+let shieldFx, magnetFx, accessory = null;
 let eyeL, eyeR;
 const bodyMat = new THREE.MeshLambertMaterial({ color: 0xf0c070, flatShading: true });
 const legMat = new THREE.MeshLambertMaterial({ color: 0x5a8aff, flatShading: true });
@@ -1420,16 +1519,16 @@ const eyePupilMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
 function addEyes(eyeY, eyeZ, spread, scl = 1) {
   eyeL = new THREE.Group(); eyeR = new THREE.Group();
   for (const [grp, sx] of [[eyeL, -1], [eyeR, 1]]) {
-    const sc = new THREE.Mesh(new THREE.SphereGeometry(0.14 * scl, 8, 7), eyeScleraMat); grp.add(sc);
-    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scl, 7, 6), eyePupilMat); pu.position.z = 0.1 * scl; grp.add(pu);
-    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.036 * scl, 5, 5), eyeScleraMat); sh.position.set(0.04, 0.04, 0.12 * scl); grp.add(sh);
+    const sc = new THREE.Mesh(new THREE.SphereGeometry(0.14 * scl, 10, 9), eyeScleraMat); grp.add(sc);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.08 * scl, 9, 8), eyePupilMat); pu.position.z = 0.1 * scl; grp.add(pu);
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.036 * scl, 6, 5), eyeScleraMat); sh.position.set(0.04, 0.04, 0.12 * scl); grp.add(sh);
     grp.position.set(sx * spread, eyeY, eyeZ); rig.add(grp);
   }
 }
 function addFeet(mat, spread = 0.28, fz = 0.24, fy = 0.2) {
   for (const [lx, lz] of [[-spread, fz], [spread, fz], [-spread, -fz], [spread, -fz]]) {
     const pivot = new THREE.Group(); pivot.position.set(lx, fy, lz);
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.25, 7, 6), mat);
+    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.25, 9, 7), mat);
     foot.scale.set(1, 0.64, 1.1); foot.position.y = -0.06; pivot.add(foot);
     rig.add(pivot); legMeshes.push(pivot);
   }
@@ -1441,48 +1540,58 @@ blobShadow.rotation.x = -Math.PI / 2; world.add(blobShadow);
 
 // --- Einzigartiger Charakter-Körper: jeder Charakter hat eine eigene Gestalt ---
 function buildCharacterRig(c) {
-  // Rig leeren
+  // Rig leeren (Materialien der alten Teile freigeben, die geteilten body/leg/eye-Mats bleiben)
   for (let i = rig.children.length - 1; i >= 0; i--) rig.remove(rig.children[i]);
-  legMeshes.length = 0; accessory = null;
+  legMeshes.length = 0; animParts.length = 0; accessory = null;
   const accMat = new THREE.MeshLambertMaterial({ color: c.acc2, flatShading: true });
 
-  // Grundkörper (Blob) — nutzt bodyMat, damit applyCharacter ihn umfärbt
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.72, 8, 7), bodyMat);
+  // Grundkörper (Blob) — glatter vernetzt für den Toy-Look; nutzt bodyMat, damit applyCharacter ihn umfärbt
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.72, 14, 12), bodyMat);
   body.scale.set(1.08, 1.16, 1.08); body.position.y = 0.84; body.castShadow = true; rig.add(body);
   addEyes(1.04, 0.58, 0.27);
   addFeet(legMat);
 
-  if (c.id === 'wuffel') {            // 🐶 Hund: Schlappohren + Schnauze
-    for (const sx of [-1, 1]) { const ear = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.4, 0.13), accMat); ear.position.set(sx * 0.4, 1.3, 0.02); ear.rotation.z = sx * 0.35; ear.castShadow = true; rig.add(ear); }
-    const snout = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 7), bodyMat); snout.scale.set(1, 0.8, 0.9); snout.position.set(0, 0.86, 0.78); rig.add(snout);
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 6), new THREE.MeshLambertMaterial({ color: 0x2a2a2a })); nose.position.set(0, 0.92, 0.96); rig.add(nose);
+  if (c.id === 'wuffel') {            // 🐶 Hund: Schlappohren, Schnauze + wedelnder Schwanz
+    for (const sx of [-1, 1]) {
+      const ear = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), accMat);
+      ear.scale.set(0.62, 1.5, 0.4); ear.position.set(sx * 0.42, 1.26, 0.02); ear.rotation.z = sx * 0.5; ear.castShadow = true; rig.add(ear);
+      animParts.push({ m: ear, kind: 'flop', sx });
+    }
+    const snout = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), bodyMat); snout.scale.set(1, 0.8, 0.9); snout.position.set(0, 0.86, 0.78); rig.add(snout);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 7), new THREE.MeshLambertMaterial({ color: 0x2a2a2a })); nose.position.set(0, 0.92, 0.96); rig.add(nose);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 7), accMat); tail.position.set(0, 0.95, -0.74); tail.rotation.x = 1.2; tail.castShadow = true; rig.add(tail);
+    animParts.push({ m: tail, kind: 'wag' });
   } else if (c.id === 'flummi') {     // 🟣 Hüpfball: glatte Kugel + Wackel-Antenne
     body.scale.set(1.14, 1.12, 1.14); bodyMat.emissiveIntensity = 0.12;
     accessory = new THREE.Group();
-    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 5), new THREE.MeshLambertMaterial({ color: 0xcfcfcf })); stick.position.y = 0.16;
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 7), accMat); ball.position.y = 0.36; accessory.add(stick, ball);
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 6), new THREE.MeshLambertMaterial({ color: 0xcfcfcf })); stick.position.y = 0.16;
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.15, 9, 8), accMat); ball.position.y = 0.36; accessory.add(stick, ball);
     accessory.position.set(0, 1.56, 0); accessory.userData.spin = true; rig.add(accessory);
+    animParts.push({ m: accessory, kind: 'sway' });
   } else if (c.id === 'magneta') {    // 🧲 Magnet: zwei rote Hörner mit weißen Spitzen
     for (const sx of [-1, 1]) {
-      const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.46, 7), new THREE.MeshLambertMaterial({ color: 0xff4444, flatShading: true })); prong.position.set(sx * 0.24, 1.42, -0.05); rig.add(prong);
-      const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.14, 7), new THREE.MeshLambertMaterial({ color: 0xeeeef4 })); tip.position.set(sx * 0.24, 1.68, -0.05); rig.add(tip);
+      const prong = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.46, 8), new THREE.MeshLambertMaterial({ color: 0xff4444, flatShading: true })); prong.position.set(sx * 0.24, 1.42, -0.05); rig.add(prong);
+      const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.14, 8), new THREE.MeshLambertMaterial({ color: 0xeeeef4 })); tip.position.set(sx * 0.24, 1.68, -0.05); rig.add(tip);
     }
   } else if (c.id === 'turbo') {      // ⚡ Renner: Rückenflosse + Speed-Visor
     const fin = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.7, 4), accMat); fin.position.set(0, 1.18, -0.42); fin.rotation.x = -0.5; fin.scale.set(0.7, 1, 0.32); fin.castShadow = true; rig.add(fin);
     const visor = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.12, 0.12), accMat); visor.position.set(0, 1.2, 0.5); rig.add(visor);
   } else if (c.id === 'goldi') {      // 🪙 Goldkönig: Krone + Münz-Emblem
     accessory = new THREE.Group();
-    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.12, 9), accMat); accessory.add(band);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.12, 10), accMat); accessory.add(band);
     for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; const sp = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.2, 4), accMat); sp.position.set(Math.cos(a) * 0.24, 0.14, Math.sin(a) * 0.24); accessory.add(sp); }
     accessory.position.set(0, 1.5, 0); accessory.userData.spin = true; rig.add(accessory);
-    const emblem = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 12), accMat); emblem.rotation.x = Math.PI / 2; emblem.position.set(0, 0.86, 0.74); rig.add(emblem);
-  } else if (c.id === 'feder') {      // 🪂 Wolkenwesen: Flausch-Puffs + Flügel
-    for (let i = 0; i < 3; i++) { const puff = new THREE.Mesh(new THREE.SphereGeometry(0.26, 7, 6), accMat); puff.position.set((i - 1) * 0.32, 1.32, -0.05); puff.castShadow = true; rig.add(puff); }
-    for (const sx of [-1, 1]) { const wing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.62, 4), accMat); wing.position.set(sx * 0.66, 0.92, -0.05); wing.rotation.z = sx * 1.1; wing.scale.set(1, 1, 0.32); rig.add(wing); }
+    const emblem = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 14), accMat); emblem.rotation.x = Math.PI / 2; emblem.position.set(0, 0.86, 0.74); rig.add(emblem);
+  } else if (c.id === 'feder') {      // 🪂 Wolkenwesen: Flausch-Puffs + flatternde Flügel
+    for (let i = 0; i < 3; i++) { const puff = new THREE.Mesh(new THREE.SphereGeometry(0.26, 9, 7), accMat); puff.position.set((i - 1) * 0.32, 1.32, -0.05); puff.castShadow = true; rig.add(puff); }
+    for (const sx of [-1, 1]) {
+      const wing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.62, 5), accMat); wing.position.set(sx * 0.66, 0.92, -0.05); wing.rotation.z = sx * 1.1; wing.scale.set(1, 1, 0.32); rig.add(wing);
+      animParts.push({ m: wing, kind: 'flap', sx, base: sx * 1.1 });
+    }
   } else if (c.id === 'panzi') {      // 🛡️ Schildkröte: Panzer-Kuppel auf dem Rücken
     body.scale.set(1.1, 0.92, 1.12);
-    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.66, 9, 6, 0, Math.PI * 2, 0, Math.PI / 2), accMat); shell.scale.set(1.1, 0.95, 1.1); shell.position.set(0, 0.96, -0.06); shell.castShadow = true; rig.add(shell);
-    for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; const bump = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), bodyMat); bump.position.set(Math.cos(a) * 0.34, 1.06, -0.06 + Math.sin(a) * 0.34); rig.add(bump); }
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.66, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), accMat); shell.scale.set(1.1, 0.95, 1.1); shell.position.set(0, 0.96, -0.06); shell.castShadow = true; rig.add(shell);
+    for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; const bump = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 6), bodyMat); bump.position.set(Math.cos(a) * 0.34, 1.06, -0.06 + Math.sin(a) * 0.34); rig.add(bump); }
   } else if (c.id === 'sternchen') {  // 🌟 Sternchen: rotierender Stern als Krönchen
     accessory = new THREE.Group();
     const st = new THREE.Mesh(starGeo, accMat); st.scale.setScalar(0.42); accessory.add(st);
@@ -1523,7 +1632,7 @@ const HUB_BUTTONS = [
 ];
 
 function buildHubIsland() {
-  if (hubIsland) { scene.remove(hubIsland); world.remove(hubIsland); }
+  if (hubIsland) { scene.remove(hubIsland); world.remove(hubIsland); disposeGroup(hubIsland); }
   hubIsland = new THREE.Group();
   hubButtons3d = [];
 
@@ -1535,7 +1644,7 @@ function buildHubIsland() {
     rowStart.push(hubPos.length / 3);
     for (let j = 0; j <= segs; j++) {
       const a = (j / segs) * Math.PI * 2, r = hr * (i / rings);
-      hubPos.push(Math.cos(a) * r, Math.sin(a * 3) * 0.35 * (i / rings), Math.sin(a) * r);
+      hubPos.push(Math.cos(a) * r, 0, Math.sin(a) * r);   // flat deck — matches the player's y so nothing floats/sinks
       const c = cG.clone().lerp(cL, Math.random() * 0.35); hubColors.push(c.r, c.g, c.b);
     }
   }
@@ -1595,6 +1704,8 @@ function buildHubIsland() {
 }
 
 function stepHub(dt) {
+  // While shop/settings are open on top of the hub, freeze the sim so the player can't drift or re-trigger pads
+  if (shop.classList.contains('open') || settingsEl.classList.contains('open')) { clearDrag(); return; }
   // Same 1:1 sticky glide physics as game, but no enemies/hazards
   state.prevVel.copy(state.vel);
   let inputActive = false;
@@ -1615,7 +1726,7 @@ function stepHub(dt) {
   // Soft boundary on hub island
   const pd = Math.hypot(state.pos.x, state.pos.y);
   if (pd > 13.5) { const n = pd; state.pos.x = (state.pos.x/n)*13.5; state.pos.y = (state.pos.y/n)*13.5; const dot = state.vel.x*(state.pos.x/n)+state.vel.y*(state.pos.y/n); if(dot>0){state.vel.x-=1.6*dot*(state.pos.x/n);state.vel.y-=1.6*dot*(state.pos.y/n);} }
-  state.y = Math.sin(state.pos.x*0.3+state.pos.y*0.2)*0.3; // gentle hub terrain height
+  state.y = 0;                                             // hub deck is flat
 
   player.position.set(state.pos.x, state.y, state.pos.y);
   if (state.vel.lengthSq() > 0.05) { const target=Math.atan2(state.vel.x,state.vel.y); let diff=target-player.rotation.y; while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;player.rotation.y+=diff*Math.min(1,10*dt); }
@@ -1634,17 +1745,20 @@ function stepHub(dt) {
     const dist = Math.hypot(state.pos.x - bx, state.pos.y - bz);
     if (dist < hb.r) {
       nearBtn = hb;
-      hb.dwellT += dt;
-      hb.ring.material.opacity = 0.6 + Math.sin(performance.now()/200)*0.35;
-      if (hb.dwellT > 0.65) {
-        // Activate!
-        hb.dwellT = 0;
-        Sound.init();
-        if (hb.action === 'play') { startGame(); return; }
-        else if (hb.action === 'chars') { openShop(); }
-        else if (hb.action === 'settings') { openSettings(); }
+      // armed-gate: after activating, the player must LEAVE the platform before it can fire again
+      if (hb.armed !== false) {
+        hb.dwellT += dt;
+        hb.ring.material.opacity = 0.6 + Math.sin(performance.now()/200)*0.35;
+        if (hb.dwellT > 0.65) {
+          hb.dwellT = 0; hb.armed = false;
+          Sound.init();
+          if (hb.action === 'play') { startGame(); return; }
+          else if (hb.action === 'chars') { openShop(); }
+          else if (hb.action === 'settings') { openSettings(); }
+        }
       }
     } else {
+      hb.armed = true;
       hb.dwellT = Math.max(0, hb.dwellT - dt * 2);
       hb.ring.material.opacity = 0.4 + hb.dwellT * 0.3;
     }
@@ -1654,25 +1768,35 @@ function stepHub(dt) {
   }
   if (hubHintEl) {
     if (nearBtn) hubHintEl.textContent = nearBtn.dwellT > 0.2 ? `→ ${nearBtn.label}` : `Halt kurz inne: ${nearBtn.label}`;
-    else hubHintEl.textContent = 'Gleite zu einer Plattform';
+    else hubHintEl.textContent = 'Gleite zu einer Plattform' + (state.hiscore ? `  ·  🏆 ${state.hiscore}` : '') + (state.depth ? `  ·  ⛏ Tiefe ${state.depth}` : '');
   }
 }
 
 // ===================================================================
 //  Partikel
 // ===================================================================
-const particles = [], partGeo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
-function burst(x, y, z, color, n = 12, spread = 5) {
+const particles = [];
+const partGeo = new THREE.BoxGeometry(0.18, 0.18, 0.18); partGeo.userData = { shared: true };
+const shardGeo = new THREE.IcosahedronGeometry(0.14, 0); shardGeo.userData = { shared: true };
+// glow=true → additive shard sparkle for collectibles; otherwise soft-fading cube confetti
+function burst(x, y, z, color, n = 12, spread = 5, glow = false) {
   for (let i = 0; i < n; i++) {
-    const m = new THREE.Mesh(partGeo, new THREE.MeshBasicMaterial({ color })); m.position.set(x, y, z); world.add(m);
-    particles.push({ mesh: m, vel: new THREE.Vector3((Math.random() - 0.5) * spread, Math.random() * spread, (Math.random() - 0.5) * spread), life: 0.6 + Math.random() * 0.3 });
+    const matOpts = { color, transparent: true, opacity: 1 };
+    if (glow) matOpts.blending = THREE.AdditiveBlending, matOpts.depthWrite = false;
+    const m = new THREE.Mesh(glow ? shardGeo : partGeo, new THREE.MeshBasicMaterial(matOpts)); m.position.set(x, y, z); world.add(m);
+    const life = 0.55 + Math.random() * 0.35;
+    particles.push({ mesh: m, vel: new THREE.Vector3((Math.random() - 0.5) * spread, Math.random() * spread * (glow ? 0.8 : 1), (Math.random() - 0.5) * spread), life, max: life, glow });
   }
 }
 function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i]; p.life -= dt;
-    if (p.life <= 0) { world.remove(p.mesh); particles.splice(i, 1); continue; }
-    p.vel.y -= 18 * dt; p.mesh.position.addScaledVector(p.vel, dt); p.mesh.rotation.x += dt * 6; p.mesh.rotation.y += dt * 6; p.mesh.scale.setScalar(Math.max(0.01, p.life * 1.6));
+    if (p.life <= 0) { world.remove(p.mesh); if (p.mesh.material.dispose) p.mesh.material.dispose(); particles.splice(i, 1); continue; }
+    if (!p.glow) p.vel.y -= 18 * dt; else p.vel.multiplyScalar(1 - 1.6 * dt);
+    p.mesh.position.addScaledVector(p.vel, dt); p.mesh.rotation.x += dt * 6; p.mesh.rotation.y += dt * 6;
+    const k = p.life / p.max;
+    p.mesh.material.opacity = Math.max(0, k);                        // soft dissolve instead of hard pop-out
+    p.mesh.scale.setScalar(Math.max(0.01, (p.glow ? 0.6 + (1 - k) * 1.4 : p.life * 1.6)));
   }
 }
 
@@ -1687,7 +1811,7 @@ function spawnTrailGhost(color, life = 0.32, op = 0.4) {
 function updateTrail(dt) {
   for (let i = trailGhosts.length - 1; i >= 0; i--) {
     const g = trailGhosts[i]; g.life -= dt;
-    if (g.life <= 0) { world.remove(g.mesh); trailGhosts.splice(i, 1); continue; }
+    if (g.life <= 0) { world.remove(g.mesh); if (g.mesh.material.dispose) g.mesh.material.dispose(); trailGhosts.splice(i, 1); continue; }
     const k = g.life / g.max; g.mesh.material.opacity = g.op * k; g.mesh.scale.setScalar(0.62 * (0.6 + (1 - k) * 0.7));
   }
 }
@@ -1697,7 +1821,46 @@ function updateTrail(dt) {
 // ===================================================================
 const Sound = (() => {
   let ctx = null, master = null, on = true;
-  function ensure() { if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.25; master.connect(ctx.destination); } if (ctx.state === 'suspended') ctx.resume(); }
+  // --- Sanfte generative Hintergrundmusik: Pentatonik je Welt, Lookahead-Scheduler ---
+  let musicStyle = null, musicTimer = 0, nextNote = 0;
+  const MUSIC_SCALES = {
+    hub:     { root: 220, steps: [0, 3, 5, 7, 10] },
+    meadow:  { root: 220, steps: [0, 2, 4, 7, 9] },
+    desert:  { root: 196, steps: [0, 2, 3, 7, 8] },
+    snow:    { root: 262, steps: [0, 2, 5, 7, 11] },
+    volcano: { root: 147, steps: [0, 1, 5, 6, 10] },
+    candy:   { root: 247, steps: [0, 4, 5, 9, 11] },
+    sky:     { root: 233, steps: [0, 2, 4, 6, 9] },
+  };
+  function mtone(freq, dur, at, vol = 0.05) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(vol, at + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.connect(g); g.connect(master); o.start(at); o.stop(at + dur + 0.05);
+  }
+  function musicLoop() {
+    if (!ctx || !on || !musicStyle) return;
+    const sc = MUSIC_SCALES[musicStyle] || MUSIC_SCALES.hub;
+    const ahead = ctx.currentTime + 0.7;
+    if (nextNote < ctx.currentTime) nextNote = ctx.currentTime + 0.05;   // nach Tab-Wechsel neu aufsetzen
+    while (nextNote < ahead) {
+      if (Math.random() < 0.68) {
+        const deg = sc.steps[Math.floor(Math.random() * sc.steps.length)] + (Math.random() < 0.3 ? 12 : 0);
+        const f = sc.root * Math.pow(2, deg / 12);
+        mtone(f, 1.1, nextNote);
+        if (Math.random() < 0.22) mtone(f * 1.5, 0.8, nextNote + 0.02, 0.03);   // leise Quinte obendrauf
+      }
+      nextNote += 0.42;
+    }
+  }
+  function startMusicTimer() { if (!musicTimer) { nextNote = ctx.currentTime + 0.1; musicTimer = setInterval(musicLoop, 220); } }
+  function ensure() {
+    if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.25; master.connect(ctx.destination); }
+    if (ctx.state === 'suspended') ctx.resume();
+    if (musicStyle) startMusicTimer();
+  }
   function tone(freq, dur, type = 'sine', vol = 1, slide = 0) {
     if (!on || !ctx) return;
     const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(freq, ctx.currentTime);
@@ -1707,6 +1870,7 @@ const Sound = (() => {
   }
   return {
     init: ensure, toggle() { on = !on; return on; },
+    music(style) { musicStyle = style; if (ctx) startMusicTimer(); },   // Tonart wechseln oder (nach init) starten
     star(c) { ensure(); tone(440 + c * 110, 0.08, 'triangle', 0.7); tone(660 + c * 90, 0.16, 'triangle', 0.85, 180); },
     coin() { ensure(); tone(1200, 0.06, 'square', 0.3); tone(1600, 0.07, 'square', 0.25); tone(2000, 0.05, 'square', 0.18); },
     bounce() { ensure(); tone(180, 0.14, 'sawtooth', 0.4, -80); tone(90, 0.1, 'sine', 0.5); },
@@ -1744,6 +1908,9 @@ const state = {
   puzzleSolved: false, puzzleStep: 0, puzzleCdUntil: 0, coyoteUntil: 0,
   dashUntil: 0, dashReadyAt: 0, dashDirX: 0, dashDirZ: 1,
   runStars: 0, runCoins: 0, runStart: 0, transitioning: false, countHint: '',
+  fovPunch: 0, padLockUntil: 0, fever: false,
+  slamArmed: false, depth: +(localStorage.getItem('landsliders_depth') || 0),
+  runCoinMult: 1, buyShield: false, buyLife: false, buyDoubler: false,
 };
 const DASH_CD = 1400, DASH_DUR = 220, DASH_SPEED = 42;
 function saveProgress() { localStorage.setItem('landsliders_coins', state.coins); localStorage.setItem('landsliders_char', state.character); localStorage.setItem('landsliders_unlocked', JSON.stringify([...unlocked])); }
@@ -1751,11 +1918,26 @@ function saveProgress() { localStorage.setItem('landsliders_coins', state.coins)
 // ===================================================================
 //  Steuerung (etwas langsamer)
 // ===================================================================
-const MODES = { SLIDE_WORLD: -1, CONTROL_CHARACTER: 1 };
-let mode = MODES.SLIDE_WORLD;
-const SENSITIVITY = 1.0, MAX_SPEED = 25, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15;
+// Steuerungsrichtung: -1 = Welt sliden (Land-Sliders-Original), 1 = Figur folgt dem Finger. In den Einstellungen wählbar.
+let mode = +(localStorage.getItem('ls_mode') || -1);
+const SENSITIVITY = 1.0, MAX_SPEED = 25, FRICTION = 2.2, GRAV = 30, SLOPE_K = 15, MAX_KNOCKBACK = 26;
+// Knockback as an ADDED impulse (never an overwrite), biased toward island centre near the rim so a hit
+// can't reliably punt you through a fence gap into the sea, then clamped so it stays a shove not a launch.
+function applyKnockback(dirX, dirZ, mag) {
+  const dl = Math.hypot(dirX, dirZ) || 1; let nx = dirX / dl, nz = dirZ / dl;
+  const pAng = Math.atan2(state.pos.y, state.pos.x), edge = edgeRadiusAt(pAng);
+  const pDist = Math.hypot(state.pos.x, state.pos.y);
+  if (pDist > edge - 3.5) {                      // close to the rim: blend the push back toward centre
+    const cx = -state.pos.x / (pDist || 1), cz = -state.pos.y / (pDist || 1), w = 0.6;
+    nx = nx * (1 - w) + cx * w; nz = nz * (1 - w) + cz * w;
+    const rl = Math.hypot(nx, nz) || 1; nx /= rl; nz /= rl;
+  }
+  state.vel.x += nx * mag; state.vel.y += nz * mag;
+  state.vel.clampLength(0, MAX_KNOCKBACK);
+}
 const AIR_FOLLOW = 9, KEY_ACCEL = 50, TAP_MAX_DIST = 12, TAP_MAX_TIME = 250;  // ground glide is 1:1 (sticky)
 const drag = { active: false, dx: 0, dy: 0, lastX: 0, lastY: 0, startX: 0, startY: 0, startT: 0, totalDist: 0, fvx: 0, fvy: 0, pid: -1, lastTapT: 0 };
+function clearDrag() { drag.active = false; drag.dx = drag.dy = drag.fvx = drag.fvy = 0; }   // kill stale finger deltas across mode/level transitions
 function px2world() { return 30 / Math.min(innerWidth, innerHeight); }
 
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -1796,11 +1978,10 @@ addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 //  HUD / Overlays
 // ===================================================================
 const scoreBadge = document.getElementById('scoreBadge'), coinsBadge = document.getElementById('coinsBadge'), comboBadge = document.getElementById('comboBadge'), starBadge = document.getElementById('starBadge'), levelBadge = document.getElementById('levelBadge'), livesBadge = document.getElementById('livesBadge'), puzzleBadge = document.getElementById('puzzleBadge');
-const overlay = document.getElementById('overlay'), startBtn = document.getElementById('startBtn'), modeBtn = document.getElementById('modeBtn'), soundBtn = document.getElementById('soundBtn'), toast = document.getElementById('toast'), hiLine = document.getElementById('hiLine');
-const shop = document.getElementById('shop'), shopBtn = document.getElementById('shopBtn'), shopClose = document.getElementById('shopClose'), lootBtn = document.getElementById('lootBtn'), shopCoins = document.getElementById('shopCoins'), lootCostEl = document.getElementById('lootCost'), charGrid = document.getElementById('charGrid');
-modeBtn.addEventListener('click', () => { mode = mode === MODES.SLIDE_WORLD ? MODES.CONTROL_CHARACTER : MODES.SLIDE_WORLD; modeBtn.textContent = mode === MODES.SLIDE_WORLD ? '🌍 Welt sliden' : '🐾 Figur steuern'; showToast(mode === MODES.SLIDE_WORLD ? 'Du ziehst die Welt unter der Figur weg' : 'Die Figur folgt deinem Finger'); });
+const overlay = document.getElementById('overlay'), startBtn = document.getElementById('startBtn'), soundBtn = document.getElementById('soundBtn'), toast = document.getElementById('toast');
+const shop = document.getElementById('shop'), shopClose = document.getElementById('shopClose'), lootBtn = document.getElementById('lootBtn'), shopCoins = document.getElementById('shopCoins'), lootCostEl = document.getElementById('lootCost'), charGrid = document.getElementById('charGrid');
 soundBtn.addEventListener('click', () => { Sound.init(); soundBtn.textContent = Sound.toggle() ? '🔊' : '🔇'; });
-function updateHUD() { scoreBadge.textContent = '🏆 ' + state.score; coinsBadge.textContent = '🪙 ' + state.coins; comboBadge.textContent = '×' + state.combo; updateVignette(); comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.06) + ')'; starBadge.textContent = charById(state.character).favIco + ' ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; if (puzzleMode === 'count') puzzleBadge.textContent = state.puzzleSolved ? '✅ Gezählt!' : (state.countHint || '🔢 Zähle!'); else puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
+function updateHUD() { scoreBadge.textContent = '🏆 ' + state.score; coinsBadge.textContent = '🪙 ' + state.coins; comboBadge.textContent = '×' + state.combo + (state.fever ? ' 🔥' : ''); comboBadge.style.display = state.combo > 1 ? '' : 'none'; updateVignette(); comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.04) + ')'; starBadge.textContent = charById(state.character).favIco + ' ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; if (puzzleMode === 'count') puzzleBadge.textContent = state.puzzleSolved ? '✅ Gezählt!' : (state.countHint || '🔢 Zähle!'); else puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
 let toastTimer = 0;
 function showToast(msg) { toast.textContent = msg; toast.classList.add('vis'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('vis'), 1700); }
 
@@ -1829,15 +2010,28 @@ function popBadge(el) { el.classList.remove('pop'); void el.offsetWidth; el.clas
 function addScore(pts) { state.score += pts; if (state.score > state.hiscore) { state.hiscore = state.score; localStorage.setItem(HISCORE_KEY, state.hiscore); } }
 
 // --- Lootbox-Shop & Charakterauswahl -----------------------------------------
-function updateMenuInfo() {
-  const c = charById(state.character);
-  hiLine.innerHTML = (state.hiscore ? 'Highscore: <span class="hi">' + state.hiscore + '</span> · ' : '') + '🪙 ' + state.coins + ' · ' + c.ico + ' ' + c.name;
+const BOOSTS ={ shield: { cost: 15, flag: 'buyShield' }, life: { cost: 20, flag: 'buyLife' }, doubler: { cost: 25, flag: 'buyDoubler' } };
+function renderBoosts() {
+  document.querySelectorAll('.boostBtn').forEach(btn => {
+    const b = BOOSTS[btn.dataset.boost]; if (!b) return;
+    const armed = !!state[b.flag];
+    btn.classList.toggle('armed', armed);
+    btn.disabled = !armed && state.coins < b.cost;
+    const bc = btn.querySelector('.bc'); if (bc) bc.textContent = armed ? '✓ bereit' : b.cost + ' 🪙';
+  });
 }
+document.querySelectorAll('.boostBtn').forEach(btn => btn.addEventListener('click', () => {
+  Sound.init(); const b = BOOSTS[btn.dataset.boost]; if (!b || state[b.flag]) return;
+  if (state.coins < b.cost) return;
+  state.coins -= b.cost; state[b.flag] = true; localStorage.setItem('landsliders_coins', state.coins);
+  Sound.power(); renderShop(); showToast('Boost bereit für den nächsten Run!');
+}));
 function renderShop() {
   shopCoins.textContent = state.coins; lootCostEl.textContent = LOOTBOX_COST;
   const allUnlocked = CHARACTERS.every(c => unlocked.has(c.id));
   lootBtn.disabled = allUnlocked || state.coins < LOOTBOX_COST;
   lootBtn.textContent = allUnlocked ? '🎉 Alle Charaktere frei!' : '🎁 Lootbox öffnen (' + LOOTBOX_COST + ' 🪙)';
+  renderBoosts();
   charGrid.innerHTML = '';
   for (const c of CHARACTERS) {
     const has = unlocked.has(c.id), sel = state.character === c.id;
@@ -1845,7 +2039,7 @@ function renderShop() {
     card.className = 'charCard' + (sel ? ' sel' : '') + (has ? '' : ' locked');
     if (has) {
       card.innerHTML = '<div class="ico">' + c.ico + '</div><div class="nm">' + c.name + '</div><div class="tr">' + c.desc + '</div><div class="swatch" style="background:#' + c.body.toString(16).padStart(6, '0') + '"></div>';
-      card.onclick = () => { state.character = c.id; applyCharacter(); saveProgress(); renderShop(); updateMenuInfo(); showToast(c.ico + ' ' + c.name + ' ausgewählt'); };
+      card.onclick = () => { state.character = c.id; applyCharacter(); saveProgress(); renderShop(); showToast(c.ico + ' ' + c.name + ' ausgewählt'); };
     } else {
       card.innerHTML = '<div class="ico">❓</div><div class="nm">???</div><div class="tr">Per 🎁 Lootbox freischalten</div>';
     }
@@ -1853,7 +2047,7 @@ function renderShop() {
   }
 }
 function openShop() { shop.classList.add('open'); renderShop(); }
-function closeShop() { shop.classList.remove('open'); updateMenuInfo(); }
+function closeShop() { shop.classList.remove('open'); }
 lootBtn.addEventListener('click', () => {
   Sound.init();
   const locked = CHARACTERS.filter(c => !unlocked.has(c.id));
@@ -1863,22 +2057,21 @@ lootBtn.addEventListener('click', () => {
   unlocked.add(win.id); state.character = win.id; applyCharacter(); saveProgress();
   renderShop(); updateHUD(); Sound.win(); showToast('🎁 Neu freigeschaltet: ' + win.ico + ' ' + win.name + '!');
 });
-shopBtn.addEventListener('click', () => { Sound.init(); openShop(); });
 shopClose.addEventListener('click', closeShop);
 
 // --- Pause & Einstellungen & Dash UI ---------------------------------------
 const pauseEl = document.getElementById('pause'), settingsEl = document.getElementById('settings');
 const pauseBtn = document.getElementById('pauseBtn'), dashBtn = document.getElementById('dashBtn'), dashCd = dashBtn.querySelector('.cd');
-const comboBarEl = document.getElementById('comboBar'), comboFillEl = document.getElementById('comboFill');
+const comboBarEl = document.getElementById('comboBar'), comboFillEl = document.getElementById('comboFill'), feverGlowEl = document.getElementById('feverGlow');
 const sensSlider = document.getElementById('sensSlider'), camSlider = document.getElementById('camSlider'), sensVal = document.getElementById('sensVal'), camVal = document.getElementById('camVal');
 function fmtCam(v) { return v < 0.92 ? 'Nah' : v > 1.12 ? 'Weit' : 'Normal'; }
-function reflectSettings() { sensSlider.value = settings.sens; camSlider.value = settings.camDist; sensVal.textContent = (+settings.sens).toFixed(2) + '×'; camVal.textContent = fmtCam(settings.camDist); document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality)); }
+function reflectSettings() { sensSlider.value = settings.sens; camSlider.value = settings.camDist; sensVal.textContent = (+settings.sens).toFixed(2) + '×'; camVal.textContent = fmtCam(settings.camDist); document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality)); document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', +b.dataset.m === mode)); }
 sensSlider.addEventListener('input', () => { settings.sens = +sensSlider.value; sensVal.textContent = settings.sens.toFixed(2) + '×'; saveSettings(); });
 camSlider.addEventListener('input', () => { settings.camDist = +camSlider.value; camVal.textContent = fmtCam(settings.camDist); saveSettings(); });
 document.querySelectorAll('#qualitySeg button').forEach(b => b.addEventListener('click', () => { settings.quality = b.dataset.q; reflectSettings(); saveSettings(); if (curTheme) setupAmbient(curTheme); }));
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { mode = +b.dataset.m; localStorage.setItem('ls_mode', mode); reflectSettings(); }));
 function openSettings() { reflectSettings(); settingsEl.classList.add('open'); }
 function closeSettings() { settingsEl.classList.remove('open'); }
-document.getElementById('settingsBtn').addEventListener('click', openSettings);
 document.getElementById('pauseSettingsBtn').addEventListener('click', openSettings);
 document.getElementById('settingsCloseBtn').addEventListener('click', closeSettings);
 function setPause(p) {
@@ -1895,7 +2088,13 @@ document.getElementById('resumeBtn').addEventListener('click', () => setPause(fa
 document.getElementById('quitBtn').addEventListener('click', quitToMenu);
 dashBtn.addEventListener('click', e => { e.preventDefault(); tryDash(); });
 
-function startLevel(level) { state.level = level; state.total = makeLevel(level); state.collected = 0; respawn(); if (state.trait === 'shield') state.shield = true; showToast('🏝️ ' + themeFor(level).name + ' — Level ' + level); updateHUD(); }
+function startLevel(level) {
+  state.level = level; state.total = makeLevel(level); state.collected = 0; respawn();
+  if (state.trait === 'shield') state.shield = true;
+  camera.position.set(0, 36, 22);   // Start weiter oben — der Kamera-Lerp fliegt sanft in die Diorama-Ansicht
+  Sound.music(themeFor(level).style);
+  showToast('🏝️ ' + themeFor(level).name + ' — Level ' + level); updateHUD();
+}
 // Sauberer Level-Übergang: weiß überblenden, neues Level bauen, zurückblenden
 const levelFadeEl = document.getElementById('levelFade');
 function transitionToLevel(nextLevel) {
@@ -1911,40 +2110,50 @@ function transitionToLevel(nextLevel) {
     }, 90);
   }, 360);                                        // entspricht der CSS-Übergangszeit
 }
-function respawn() { state.pos.set(0, 0); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(0, 0); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(0, state.y, 0); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
+function respawn() { clearDrag(); state.pos.set(0, 0); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(0, 0); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(0, state.y, 0); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
 function enterHubMode() {
-  hubMode = true; state.running = false;
+  hubMode = true; state.running = false; clearDrag();
   // Hide game UI, show hub UI
   document.getElementById('hud').style.display = 'none';
-  document.getElementById('modeBtn').style.display = 'none';
   document.getElementById('pauseBtn').style.display = 'none';
   document.getElementById('dashBtn').style.display = 'none';
   document.getElementById('comboBar').style.display = 'none';
   document.getElementById('hubOverlay').style.display = 'flex';
   overlay.classList.add('hidden');
   // Remove game island from world, build hub
-  if (islandGroup) { world.remove(islandGroup); islandGroup = null; }
+  if (islandGroup) { world.remove(islandGroup); disposeGroup(islandGroup); islandGroup = null; }
   buildHubIsland();
   // Reset player pos to hub center
   state.pos.set(0, 0); state.vel.set(0, 0); state.y = 0;
   player.position.set(0, 0, 0); player.rotation.set(0, 0, 0);
   applyCharacter();
+  Sound.music('hub');
   // Hub theme
-  scene.background.setHex(0x6dd8f8); scene.fog.color.setHex(0x88e4ff); ambient.color.setHex(0xc8eeff);
+  scene.background.setHex(0x6dd8f8); scene.fog.color.setHex(0x88e4ff); hemi.color.setHex(0xd8f0ff); hemi.groundColor.setHex(0x3a8a4a); seaMat.color.setHex(0x1a80c8); seaBaseHex = 0x1a80c8;
 }
 
 function leaveHubMode() {
-  hubMode = false;
+  hubMode = false; clearDrag();
   document.getElementById('hud').style.display = '';
-  document.getElementById('modeBtn').style.display = '';
   document.getElementById('pauseBtn').style.display = '';
   document.getElementById('dashBtn').style.display = '';
   document.getElementById('comboBar').style.display = '';
   document.getElementById('hubOverlay').style.display = 'none';
-  if (hubIsland) { world.remove(hubIsland); hubIsland = null; }
+  if (hubIsland) { world.remove(hubIsland); disposeGroup(hubIsland); hubIsland = null; }
 }
 
-function startGame() { Sound.init(); leaveHubMode(); applyCharacter(); state.lives = 3; state.score = 0; state.combo = 1; state.comboMax = 1; state.comboTimer = 0; state.shield = false; state.magnetUntil = 0; state.runStars = 0; state.runCoins = 0; state.runStart = performance.now(); state.dashUntil = 0; state.dashReadyAt = 0; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open'); state.running = true; startLevel(1); }
+function startGame() {
+  Sound.init(); leaveHubMode(); applyCharacter();
+  state.lives = 3; state.score = 0; state.combo = 1; state.comboMax = 1; state.comboTimer = 0; state.fever = false;
+  state.shield = false; state.magnetUntil = 0; state.runStars = 0; state.runCoins = 0; state.runStart = performance.now();
+  state.dashUntil = 0; state.dashReadyAt = 0; state.paused = false; state.transitioning = false; state.runCoinMult = 1; state.slamArmed = false;
+  // Consume pre-run boosts bought in the shop
+  if (state.buyShield) { state.shield = true; state.buyShield = false; }
+  if (state.buyLife) { state.lives = 4; state.buyLife = false; }
+  if (state.buyDoubler) { state.runCoinMult = 2; state.buyDoubler = false; showToast('💰 Münz-Verdoppler aktiv!'); }
+  if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open');
+  state.running = true; startLevel(1);
+}
 function endGame(won) {
   state.running = false; state.paused = false; state.transitioning = false;
   if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open');
@@ -1953,36 +2162,53 @@ function endGame(won) {
   const msg = (won ? '🏆 Durchgespielt! ' : '💧 Game Over — ') +
     `${state.score} Punkte · ⭐${state.runStars} · 🪙${state.runCoins} · ${secs}s`;
   saveProgress();
-  // Brief flash then return to hub world
+  // Brief flash then return to hub world with the run summary as a toast
   showFlash(won ? 0x44ffd0 : 0xff2244, 0.55, 0.4);
-  setTimeout(() => {
-    showToast(msg);
-    enterHubMode();
-    setTimeout(() => showToast(msg), 200);
-  }, 400);
+  setTimeout(() => { enterHubMode(); showToast(msg); }, 400);
 }
-startBtn.addEventListener('click', () => { if (hubMode) startGame(); else startGame(); });
+// Intro nur beim allerersten Start; danach übernimmt der Hub das Menü komplett
+startBtn.addEventListener('click', () => { localStorage.setItem('ls_intro', '1'); overlay.classList.add('hidden'); startGame(); });
 
 // ===================================================================
 //  Spiel-Logik
 // ===================================================================
 const clock = new THREE.Clock();
-function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.7; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }
-function bumpCombo() { state.comboTimer = 2.5; state.combo = Math.min(9, state.combo + 1); state.comboMax = Math.max(state.comboMax, state.combo); }
-function launch(power) { state.grounded = false; state.vy = power; state.landSquash = 0; }
+function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.7; punchFOV(6); state.fever = false; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }
+const COMBO_TIERS = { 5: ['Combo!', 0xffcc33], 8: ['On Fire! 🔥', 0xff8a2a], 12: ['Unstoppable!', 0xff5a2a], 16: ['Blazing!', 0xff3a6a], 20: ['LEGENDARY! ⚡', 0xffe23a] };
+function bumpCombo() {
+  state.comboTimer = 2.5;
+  const prev = state.combo;
+  state.combo = Math.min(20, state.combo + 1);
+  state.comboMax = Math.max(state.comboMax, state.combo);
+  if (state.combo >= 8 && !state.fever) { state.fever = true; showToast('🔥 FEVER! ×1.5 Punkte'); }
+  if (state.combo !== prev && COMBO_TIERS[state.combo]) {
+    const [label, col] = COMBO_TIERS[state.combo];
+    showToast('×' + state.combo + ' ' + label); showFlash(col, 0.22);
+    Sound.star(state.combo); punchFOV(3);
+  }
+}
+function launch(power) { state.grounded = false; state.vy = power; state.y += 0.2; state.landSquash = 0; state.padLockUntil = performance.now() + 260; }
 
-// --- Dash: kurzer Geschwindigkeits-Schub mit Cooldown ---
+// --- Dash: kurzer Geschwindigkeits-Schub mit Cooldown; in der Luft -> Sturz-Slam ---
 function tryDash() {
   if (!state.running || state.paused) return;
   const now = performance.now();
   if (now < state.dashReadyAt) return;
+  // Airborne dash -> downward SLAM: drives the player into the ground for a shockwave on landing
+  if (!state.grounded && state.y > (surfaceAt(state.pos.x, state.pos.y, state.y).y ?? -99) + 0.6) {
+    state.vy = -Math.max(24, Math.abs(state.vy) + 16); state.slamArmed = true;
+    state.dashReadyAt = now + DASH_CD; state.invincibleUntil = Math.max(state.invincibleUntil, now + 240);
+    punchFOV(4); Sound.whoosh(); showFlash(0x9fe0ff, 0.12, 0.18);
+    for (let i = 0; i < 4; i++) spawnTrailGhost(0x9fe0ff, 0.34, 0.5);
+    return;
+  }
   let dx = state.vel.x, dz = state.vel.y, l = Math.hypot(dx, dz);
   if (l < 1.2) { dx = state.dashDirX; dz = state.dashDirZ; l = Math.hypot(dx, dz) || 1; }
   state.dashDirX = dx / l; state.dashDirZ = dz / l;
   state.vel.x = state.dashDirX * DASH_SPEED; state.vel.y = state.dashDirZ * DASH_SPEED;
   state.dashUntil = now + DASH_DUR; state.dashReadyAt = now + DASH_CD;
   state.invincibleUntil = Math.max(state.invincibleUntil, now + DASH_DUR + 90);
-  state.shake = Math.max(state.shake, 0.28); Sound.whoosh();
+  state.shake = Math.max(state.shake, 0.28); punchFOV(5); Sound.whoosh();
   showFlash(0x9fe0ff, 0.14, 0.2);
   burst(player.position.x, state.y + 0.8, player.position.z, 0x9fe0ff, 16, 6);
   for (let i = 0; i < 5; i++) spawnTrailGhost(0x9fe0ff, 0.4, 0.5);
@@ -1990,7 +2216,7 @@ function tryDash() {
 
 function step(dt) {
   if (!state.running || state.paused || state.transitioning) return;
-  if (state.comboTimer > 0) { state.comboTimer -= dt; if (state.comboTimer <= 0) { state.combo = 1; updateHUD(); } }
+  if (state.comboTimer > 0) { state.comboTimer -= dt; if (state.comboTimer <= 0) { state.combo = 1; state.fever = false; updateHUD(); } }
   state.prevVel.copy(state.vel);
 
   // --- Charakter-Fähigkeiten (Trait beeinflusst Physik/Sammeln) ---
@@ -2029,8 +2255,19 @@ function step(dt) {
 
   // --- Hangabtrieb (nicht auf Brücke) ---
   const preSurf = surfaceAt(state.pos.x, state.pos.y, state.y);
-  if (state.grounded && preSurf.type === 'ground') { const g = groundGrad(state.pos.x, state.pos.y); state.vel.x -= SLOPE_K * g.x * dt; state.vel.y -= SLOPE_K * g.z * dt; }
-  if (!inputActive && state.grounded) { state.vel.multiplyScalar(Math.max(0, 1 - friction * dt)); if (state.vel.lengthSq() < 0.01 && preSurf.type !== 'bridge') state.vel.set(0, 0); }
+  if (state.grounded && preSurf.type === 'ground') {
+    const g = groundGrad(state.pos.x, state.pos.y), gmag = Math.hypot(g.x, g.z);
+    // Static-friction deadzone: on near-flat ground while resting, don't apply the slope force at all
+    // (kills the hilltop gradient-sign-flip jitter and lets the player truly come to rest)
+    if (!(gmag < 0.08 && !inputActive && state.vel.lengthSq() < 2.25)) { state.vel.x -= SLOPE_K * g.x * dt; state.vel.y -= SLOPE_K * g.z * dt; }
+  }
+  if (!inputActive && state.grounded) {
+    state.vel.multiplyScalar(Math.max(0, 1 - friction * dt));
+    const gflat = preSurf.type === 'ground' ? groundGrad(state.pos.x, state.pos.y) : { x: 0, z: 0 };
+    const restable = Math.hypot(gflat.x, gflat.z) < 0.12;
+    if (state.vel.lengthSq() < (restable ? 2.25 : 0.01) && preSurf.type !== 'bridge' && restable) state.vel.set(0, 0);
+    else if (state.vel.lengthSq() < 0.01 && preSurf.type !== 'bridge') state.vel.set(0, 0);
+  }
   if (!dashing && state.vel.length() > maxSpeed) state.vel.setLength(maxSpeed);  // dash may exceed the normal cap
 
   // --- Horizontal + Hindernis-Kollision ---
@@ -2067,16 +2304,19 @@ function step(dt) {
     }
   }
 
-  // --- Brücke: zur Mitte ziehen + Seil eindrücken ---
+  // --- Brücke: nur nahe den Geländern sanft zur Mitte ziehen — nie gegen aktive Eingabe kämpfen ---
   const surf = surfaceAt(state.pos.x, state.pos.y, state.y);
   if (surf.type === 'bridge' && state.grounded) {
     const b = surf.s, br = surf.b;
-    state.vel.x += (b.cx - state.pos.x) * 4 * dt; state.vel.y += (b.cz - state.pos.y) * 4 * dt;
+    if (!inputActive) {
+      const pf = b.perp / br.width;                          // 0 mittig … 1 am Geländer
+      state.vel.x += (b.cx - state.pos.x) * 6 * pf * dt; state.vel.y += (b.cz - state.pos.y) * 6 * pf * dt;
+    }
     const sag = 0.05 * (1 - b.perp / br.width); br.rope.pts[b.idx].pos.y -= sag; br.rope.pts[b.idx + 1].pos.y -= sag;
   }
 
-  // --- Sprungfedern ---
-  if (state.grounded) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power * (tr === 'pad' ? 1.45 : 1) * (tr === 'float' ? 1.18 : 1)); Sound.boing(); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
+  // --- Sprungfedern (mit kurzer Anti-Retrigger-Sperre, damit man nicht endlos hüpft) ---
+  if (state.grounded && performance.now() >= (state.padLockUntil || 0)) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power * (tr === 'pad' ? 1.45 : 1) * (tr === 'float' ? 1.18 : 1)); Sound.boing(); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
 
   // --- Vertikal ---
   if (state.grounded) {
@@ -2087,12 +2327,24 @@ function step(dt) {
   if (!state.grounded) {
     const inCoyote = performance.now() < state.coyoteUntil;
     if (!inCoyote) state.vy -= grav * dt;
+    const prevY = state.y;                    // pre-move height — used so fast falls can't tunnel through a deck
     state.y += state.vy * dt;
-    const s2 = surfaceAt(state.pos.x, state.pos.y, state.y);
-    if (s2.type !== 'none' && state.vy <= 0 && state.y <= s2.y + 0.15) {
+    // Query using the PRE-move height: a fast frame can drop newY well below the deck's accept band,
+    // making surfaceAt(newY) return 'none' and the player tunnels straight through into the sea.
+    const s2 = surfaceAt(state.pos.x, state.pos.y, prevY);
+    if (s2.type !== 'none' && state.vy <= 0 && prevY >= s2.y - 0.05 && state.y <= s2.y + 0.15) {
       const impact = Math.abs(state.vy); state.y = s2.y; state.vy = 0; state.grounded = true;
-      state.landSquash = Math.min(1, 0.38 + impact * 0.046); Sound.land();
+      state.landSquash = Math.min(1, 0.38 + impact * 0.046);
+      if (s2.type === 'elevator') Sound.lift(); else Sound.land();
       if (impact > 4) burst(state.pos.x, state.y + 0.05, state.pos.y, 0xffffff, 8, 4);
+      if (impact > 8) { punchFOV(3.5); state.shake = Math.max(state.shake, 0.25); }
+      // Air-dash slam landing: shockwave that knocks nearby enemies back
+      if (state.slamArmed) {
+        state.slamArmed = false; state.shake = Math.max(state.shake, 0.55); punchFOV(6); showFlash(0x9fe0ff, 0.28); Sound.boing();
+        burst(state.pos.x, state.y + 0.1, state.pos.y, 0x9fe0ff, 26, 9, true);
+        for (const e of enemies) { const ex2 = e.position.x - state.pos.x, ez2 = e.position.z - state.pos.y, ed = Math.hypot(ex2, ez2); if (ed < 6) { const eu = e.userData; eu.heading = Math.atan2(ex2, ez2); eu.cooldown = 1.4; eu.windup = 0; e.position.x += (ex2 / (ed || 1)) * 2.2; e.position.z += (ez2 / (ed || 1)) * 2.2; burst(e.position.x, e.position.y + 0.8, e.position.z, 0x9fe0ff, 8, 5); } }
+        showFloat('SLAM!', state.pos.x, state.y + 2, state.pos.y, '#9fe0ff');
+      }
     }
     if (state.y < -14) { Sound.fall(); hurt('Ins Meer gefallen!'); return; }
   }
@@ -2121,7 +2373,7 @@ function step(dt) {
     u.body.scale.set(1 + u.windup * 0.25, 1 - u.windup * 0.2, 1 + u.windup * 0.25);
     const hitR = u.kind === 'pusher' ? 1.4 : 1.1;
     if (distP < hitR && state.grounded && !invinc && Math.abs(state.y - e.position.y) < 1.6) {
-      if (u.kind === 'pusher') { const d = Math.max(0.01, distP), kick = 20 + u.windup * 14; state.vel.x = (toPx / d) * kick; state.vel.y = (toPz / d) * kick; u.windup = 0; u.cooldown = 1.2; state.invincibleUntil = performance.now() + 350; state.shake = 0.4; Sound.whoosh(); burst(e.position.x, e.position.y + 1, e.position.z, 0xff8a3d, 12, 6); showToast('🟠 Weggeschubst!'); }
+      if (u.kind === 'pusher') { const kick = 18 + u.windup * 12; applyKnockback(toPx, toPz, kick); u.windup = 0; u.cooldown = 1.2; state.invincibleUntil = performance.now() + 350; state.shake = 0.4; Sound.whoosh(); burst(e.position.x, e.position.y + 1, e.position.z, 0xff8a3d, 12, 6); showToast('🟠 Weggeschubst!'); }
       else { if (state.shield) { state.shield = false; shieldFx.visible = false; Sound.bounce(); burst(e.position.x, e.position.y + 1, e.position.z, 0x33c1ff, 14, 6); u.heading += Math.PI; state.invincibleUntil = performance.now() + 600; showToast('🛡 Schild aufgebraucht!'); } else { hurt('👾 Jäger getroffen!'); return; } }
     }
   }
@@ -2132,9 +2384,10 @@ function step(dt) {
     const d = Math.hypot(state.pos.x - ball.x, state.pos.y - ball.z);
     if (d < hz.r + 0.7 && Math.abs(state.y + 0.8 - ball.y) < 1.9 && !invinc && state.grounded) {
       const swx = bp.pos.x - bp.prev.x, swz = bp.pos.z - bp.prev.z;   // Schwung der Kugel
-      const dd = Math.max(0.01, d), radial = 14, swingK = 90;
-      state.vel.x = (state.pos.x - ball.x) / dd * radial + swx * swingK;
-      state.vel.y = (state.pos.y - ball.z) / dd * radial + swz * swingK;
+      const dd = Math.max(0.01, d), radial = 13, swingK = 70;
+      // additive impulse (radial away from ball + its swing), centre-biased near the rim, then clamped
+      const kvx = (state.pos.x - ball.x) / dd * radial + swx * swingK, kvz = (state.pos.y - ball.z) / dd * radial + swz * swingK;
+      applyKnockback(kvx, kvz, Math.max(12, Math.hypot(kvx, kvz)));
       state.grounded = false; state.vy = 6;                           // kleiner Pop nach oben
       state.invincibleUntil = performance.now() + 650; state.shake = 0.6;
       Sound.whoosh(); burst(ball.x, ball.y, ball.z, 0x999999, 18, 7);
@@ -2157,13 +2410,13 @@ function step(dt) {
           // Count puzzle: one-shot correct answer
           btn.topMat.color.setHex(0x33dd55); btn.topMat.emissive.setHex(0x0a5520); btn.topMat.emissiveIntensity = 1;
           Sound.power(); burst(bx, btn.group.position.y + 0.6, bz, 0x33dd55, 18, 6);
-          showFlash(0x33dd55, 0.3); state.puzzleSolved = true; updateHUD();
+          showFlash(0x33dd55, 0.3); state.puzzleSolved = true; rewardPuzzle();
           showToast('✅ Richtig gezählt! Rätsel gelöst!'); tryActivateGoal();
         } else {
           state.puzzleStep++;
           btn.topMat.color.setHex(0x33dd55); btn.topMat.emissive.setHex(0x0a5520); btn.topMat.emissiveIntensity = 1;
           Sound.boing(); burst(bx, btn.group.position.y + 0.6, bz, 0x33dd55, 14, 5); updateHUD();
-          if (state.puzzleStep >= buttons.length) { state.puzzleSolved = true; Sound.power(); showFlash(0x33dd55, 0.3); showToast('🔢 Rätsel gelöst!'); tryActivateGoal(); }
+          if (state.puzzleStep >= buttons.length) { state.puzzleSolved = true; Sound.power(); showFlash(0x33dd55, 0.3); rewardPuzzle(); showToast('🔢 Rätsel gelöst!'); tryActivateGoal(); }
           else showToast('🔢 ' + state.puzzleStep + '/' + buttons.length + ' richtig');
         }
       } else {
@@ -2201,14 +2454,16 @@ function step(dt) {
     const s = stars[i]; let dx = state.pos.x - s.position.x, dz = state.pos.y - s.position.z, dd = dx * dx + dz * dz;
     if (magnet && dd < 36) { s.position.x += dx * Math.min(1, 6 * dt); s.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - s.position.x; dz = state.pos.y - s.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) {
-      islandGroup.remove(s); stars.splice(i, 1); state.collected++; state.runStars++; bumpCombo();
-      const pts = Math.round(100 * state.combo * (tr === 'score' ? 1.5 : 1)); addScore(pts);
+      const isBonus = !!s.userData.bonus;
+      islandGroup.remove(s); stars.splice(i, 1); if (!isBonus) state.collected++; state.runStars++; bumpCombo();
+      const pts = Math.round((isBonus ? 180 : 100) * state.combo * (tr === 'score' ? 1.5 : 1) * (state.fever ? 1.5 : 1)); addScore(pts);
+      if (isBonus) { state.coins += 3; state.runCoins += 3; localStorage.setItem('landsliders_coins', state.coins); }
       const fi = favInfo(state.character);
-      Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, fi.color, 14, 5);
-      showFloat('+' + pts, s.position.x, s.position.y + 1.4, s.position.z, '#ffd23f');
+      Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, fi.color, isBonus ? 20 : 14, isBonus ? 7 : 5, true);
+      showFloat((isBonus ? '★ +' : '+') + pts, s.position.x, s.position.y + 1.4, s.position.z, isBonus ? '#ffe27a' : '#ffd23f');
       if (state.combo >= 3) { showFloat('Combo ×' + state.combo + '!', s.position.x, s.position.y + 2.2, s.position.z, '#ff9d45'); showFlash(0xffaa00, 0.18); }
       updateHUD();
-      if (state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast(fi.ico + ' Alle gesammelt — jetzt das 🔢 Rätsel lösen!'); }
+      if (!isBonus && state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast(fi.ico + ' Alle gesammelt — jetzt das 🔢 Rätsel lösen!'); }
     }
   }
   // --- Münzen ---
@@ -2217,9 +2472,10 @@ function step(dt) {
     if (magnet && dd < 36) { c.position.x += dx * Math.min(1, 6 * dt); c.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - c.position.x; dz = state.pos.y - c.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.3 && Math.abs(state.y + 1.0 - c.position.y) < 2.2) {
       islandGroup.remove(c); coins.splice(i, 1);
-      const got = tr === 'coin2' ? 2 : 1; state.coins += got; state.runCoins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(25);
-      Sound.coin(); burst(c.position.x, c.position.y, c.position.z, 0xffc107, 8, 4);
-      showFloat(got > 1 ? '+2 🪙' : '+1 🪙', c.position.x, c.position.y + 1.2, c.position.z, '#ffd040');
+      let got = (tr === 'coin2' ? 2 : 1) * (state.runCoinMult || 1); state.coins += got; state.runCoins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(Math.round(25 * (state.fever ? 1.5 : 1)));
+      bumpCombo();   // coins keep the combo alive too, so fever isn't star-only
+      Sound.coin(); burst(c.position.x, c.position.y, c.position.z, 0xffc107, 8, 4, true);
+      showFloat('+' + got + ' 🪙', c.position.x, c.position.y + 1.2, c.position.z, '#ffd040');
       updateHUD();
     }
   }
@@ -2230,7 +2486,7 @@ function step(dt) {
       islandGroup.remove(gm); gems.splice(i, 1);
       const gain = tr === 'coin2' ? 40 : 20; state.coins += gain; state.runCoins += gain; localStorage.setItem('landsliders_coins', state.coins);
       addScore(500); Sound.power(); showFlash(0x59f0ff, 0.32);
-      burst(gm.position.x, gm.userData.baseY, gm.position.z, 0x59f0ff, 26, 9);
+      burst(gm.position.x, gm.userData.baseY, gm.position.z, 0x59f0ff, 26, 9, true);
       showFloat('💎 +' + gain + ' 🪙', gm.position.x, gm.userData.baseY + 1.5, gm.position.z, '#7ff0ff');
       showToast('💎 Edelstein! +500'); updateHUD();
     }
@@ -2246,11 +2502,16 @@ function step(dt) {
     }
   }
 
-  // --- Ziel ---
+  // --- Ziel: endloser Abstieg — nach Level 6 geht es immer weiter, tiefer & schwerer ---
   if (goal && goal.userData.active && Math.hypot(state.pos.x - goal.position.x, state.pos.y - goal.position.z) < 1.6) {
-    const bonus = state.lives * 200; addScore(bonus); burst(goal.position.x, goal.position.y + 1.6, goal.position.z, 0x55ffd0, 24, 8);
-    showFlash(0x66ffd0, 0.3); Sound.win();
-    if (state.level >= 6) { endGame(true); return; } showToast('Geschafft! +' + bonus + ' Bonus'); transitionToLevel(state.level + 1); return;
+    const bonus = state.lives * 200 + (state.fever ? 300 : 0); addScore(bonus);
+    burst(goal.position.x, goal.position.y + 1.6, goal.position.z, 0x55ffd0, 26, 8, true);
+    showFlash(0x66ffd0, 0.35); punchFOV(5); Sound.win();
+    // persist deepest level reached
+    if (state.level >= state.depth) { state.depth = state.level; localStorage.setItem('landsliders_depth', state.depth); }
+    if (state.level === 6) showToast('🏆 Alle 6 Welten! Der endlose Abstieg beginnt…');
+    else showToast('Geschafft! +' + bonus + (state.fever ? ' 🔥' : ''));
+    transitionToLevel(state.level + 1); return;
   }
 
   // --- Animations-Parameter ---
@@ -2266,6 +2527,13 @@ function step(dt) {
   if (state.shake > 0) state.shake = Math.max(0, state.shake - dt * 2);
 }
 
+// Solving the puzzle is a beat, not just a gate — pay it out and drop a bonus gem by the portal
+function rewardPuzzle() {
+  addScore(250); state.coins += 5; state.runCoins += 5; localStorage.setItem('landsliders_coins', state.coins);
+  showFloat('🧩 +250 · +5 🪙', player.position.x, state.y + 2, player.position.z, '#a0f0c0');
+  if (goal) { const gx = goal.position.x + (Math.random() - 0.5) * 3, gz = goal.position.z + (Math.random() - 0.5) * 3; if (insideIsland(gx, gz, 1)) addGemAt(gx, gz); }
+  updateHUD();
+}
 function activateGoal() {
   if (!goal || goal.userData.active) return;
   goal.userData.active = true;
@@ -2282,6 +2550,12 @@ function tryActivateGoal() { if (state.collected >= state.total && (state.puzzle
 // ===================================================================
 //  Render-Loop
 // ===================================================================
+const _seaCol = new THREE.Color(0x1a80c8), _seaColLight = new THREE.Color(0xbfe8ff);
+function updateSea(t) {
+  // gentle shimmer: breathe the flat sea colour toward a lighter blue on a slow sine
+  const k = 0.10 * (0.5 + 0.5 * Math.sin(t * 0.55));
+  _seaCol.setHex(seaBaseHex).lerp(_seaColLight, k); seaMat.color.copy(_seaCol);
+}
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -2290,6 +2564,7 @@ function animate() {
     stepHub(dt);
     updateParticles(dt); updateTrail(dt);
     const t2 = performance.now() / 1000;
+    updateSea(t2);
     for (const c of cloudGroup.children) c.rotation.y += c.userData.spin * dt;
     blobShadow.position.set(state.pos.x, state.y + 0.04, state.pos.y); blobShadow.material.opacity = 0.2; blobShadow.scale.setScalar(0.85); blobShadow.visible = true;
     const wp2 = new THREE.Vector3(); player.getWorldPosition(wp2);
@@ -2324,12 +2599,30 @@ function animate() {
     ev.curY = ev.lowY + (ev.highY - ev.lowY) * (0.5 + 0.5 * Math.sin(ev.phase));
     ev.platform.position.set(ev.x, ev.curY, ev.z);
   }
-  // --- Count puzzle objects bob + spin ---
-  for (const co of countObjects) { co.rotation.y = t * 1.8; co.position.y = co.userData.baseY + Math.sin(t * 2.4 + co.position.x) * 0.14; }
+  // --- Count puzzle objects: bob, spin, and blink in sequence (1..N) so they're always countable ---
+  if (countObjects.length) {
+    const nC = countObjects.length, sweep = (t * 1.1) % (nC + 1.2);   // a light runs across them 1..N then rests
+    for (const co of countObjects) {
+      co.rotation.y = t * 1.8; co.position.y = co.userData.baseY + Math.sin(t * 2.4 + co.position.x) * 0.14;
+      const lit = Math.max(0, 1 - Math.abs(sweep - co.userData.idx) * 1.6);
+      co.userData.mat.emissiveIntensity = 0.35 + lit * 0.9;
+      co.scale.setScalar(1 + lit * 0.18);
+    }
+  }
 
-  for (const s of stars) { s.rotation.y = t * 2; s.position.y = s.userData.baseY + Math.sin(t * 3 + s.position.x) * 0.15; }
-  for (const c of coins) { c.rotation.z = t * 4; c.position.y = c.userData.baseY + Math.sin(t * 3 + c.position.x) * 0.12; }
+  // Sammelobjekte ploppen nach dem Levelaufbau elastisch herein (Overshoot), dann Spin + Bobbing
+  const popIn = (o, base = 1) => {
+    if (o.userData.grown) return;
+    if (o.userData.baseScale === undefined) o.userData.baseScale = o.scale.x || base;
+    o.userData.grow = (o.userData.grow || 0) + dt * 2.4;
+    const k = Math.min(1, o.userData.grow);
+    o.scale.setScalar(Math.max(0.01, o.userData.baseScale * k * (1 + 0.35 * Math.sin(k * Math.PI))));
+    if (k >= 1) { o.scale.setScalar(o.userData.baseScale); o.userData.grown = true; }
+  };
+  for (const s of stars) { popIn(s); s.rotation.y = t * 2; s.position.y = s.userData.baseY + Math.sin(t * 3 + s.position.x) * 0.15; }
+  for (const c of coins) { popIn(c); c.rotation.z = t * 4; c.position.y = c.userData.baseY + Math.sin(t * 3 + c.position.x) * 0.12; }
   for (const pu of powerups) { pu.userData.orb.rotation.y = t * 2; pu.userData.orb.position.y = 1.2 + Math.sin(t * 2.5 + pu.position.x) * 0.2; }
+  updateSea(t);
   for (const c of cloudGroup.children) c.rotation.y += c.userData.spin * dt;
   // --- Portal animation ---
   if (goal) {
@@ -2363,23 +2656,35 @@ function animate() {
     }
   }
   for (const lv of floorHaz) lv.mesh.material.color.setRGB(1, 0.27 + Math.sin(t * 3 + lv.x) * 0.08, 0);
-  // Eye gaze: pupils track movement direction subtly
-  if (eyeL && eyeR && state.vel.length() > 0.5) {
-    const ey = THREE.MathUtils.clamp(state.vel.y * 0.01, -0.05, 0.05);
-    const ex = THREE.MathUtils.clamp(state.vel.x * 0.01, -0.05, 0.05);
-    eyeL.rotation.x = THREE.MathUtils.lerp(eyeL.rotation.x, ey, Math.min(1, 4 * dt));
-    eyeL.rotation.y = THREE.MathUtils.lerp(eyeL.rotation.y, ex, Math.min(1, 4 * dt));
-    eyeR.rotation.copy(eyeL.rotation);
+  // Eye gaze: pupils track movement direction subtly; regelmäßiges Blinzeln macht die Figur lebendig
+  if (eyeL && eyeR) {
+    if (state.vel.length() > 0.5) {
+      const ey = THREE.MathUtils.clamp(state.vel.y * 0.01, -0.05, 0.05);
+      const ex = THREE.MathUtils.clamp(state.vel.x * 0.01, -0.05, 0.05);
+      eyeL.rotation.x = THREE.MathUtils.lerp(eyeL.rotation.x, ey, Math.min(1, 4 * dt));
+      eyeL.rotation.y = THREE.MathUtils.lerp(eyeL.rotation.y, ex, Math.min(1, 4 * dt));
+      eyeR.rotation.copy(eyeL.rotation);
+    }
+    const blink = ((t + 1.3) % 3.4) < 0.12 ? 0.12 : 1;
+    eyeL.scale.y = blink; eyeR.scale.y = blink;
   }
   const spd = state.vel.length(), moving = spd > 0.6 && state.grounded;
+  // Sekundär-Animationen: Schwanzwedeln, Ohren-Flattern, Flügelschlag, Antennen-Schwingen
+  for (const ap of animParts) {
+    if (ap.kind === 'wag') ap.m.rotation.z = Math.sin(t * 9) * (0.22 + Math.min(0.3, spd * 0.02));
+    else if (ap.kind === 'flop') ap.m.rotation.z = ap.sx * (0.5 + Math.sin(t * 7 + ap.sx) * Math.min(0.22, 0.05 + spd * 0.012));
+    else if (ap.kind === 'flap') ap.m.rotation.z = ap.base + Math.sin(t * (state.grounded ? 4 : 11)) * 0.22 * ap.sx;
+    else if (ap.kind === 'sway') ap.m.rotation.x = Math.sin(t * 5) * 0.18 + THREE.MathUtils.clamp(-state.vel.y * 0.01, -0.3, 0.3);
+  }
   for (let i = 0; i < legMeshes.length; i++) { const off = (i % 2 === 0 ? 0 : Math.PI); if (!state.grounded) legMeshes[i].rotation.x = -0.7; else legMeshes[i].rotation.x = moving ? Math.sin(state.animPhase + off) * Math.min(0.9, spd * 0.08) : THREE.MathUtils.lerp(legMeshes[i].rotation.x, 0, Math.min(1, 8 * dt)); }
   const stretch = THREE.MathUtils.clamp(state.vy * 0.03, -0.25, 0.35);
   const sx = 1 - stretch * 0.5 + state.landSquash * 0.3, sy = 1 + stretch - state.landSquash * 0.5;
   rig.scale.set(sx, sy, sx); rig.rotation.x = state.leanX; rig.rotation.z = state.leanZ; rig.position.y = moving ? Math.abs(Math.sin(state.animPhase)) * 0.12 : 0;
 
-  // --- Combo bar + dash cooldown HUD ---
-  if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 2.5) + ')'; }
+  // --- Combo bar + fever glow + dash cooldown HUD ---
+  if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 2.5) + ')'; comboFillEl.style.background = state.fever ? 'linear-gradient(90deg,#ff5a2a,#ffe23a)' : 'linear-gradient(90deg,#ff9d45,#ffd23f)'; }
   else comboBarEl.classList.remove('vis');
+  if (feverGlowEl) feverGlowEl.classList.toggle('on', state.fever && state.running);
   const cdFrac = THREE.MathUtils.clamp((state.dashReadyAt - performance.now()) / DASH_CD, 0, 1);
   dashCd.style.height = (cdFrac * 100) + '%';
   dashBtn.classList.toggle('ready', cdFrac <= 0);
@@ -2398,10 +2703,18 @@ function animate() {
 
   const wp = new THREE.Vector3(); player.getWorldPosition(wp);
   const sh = state.shake;
-  // Diorama trailing camera — Land Sliders style: overhead tilt that still shows object sides & cliffs
-  const camFollow = Math.min(1, 8 * dt), cd = settings.camDist;
-  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, Math.max(wp.y, -2) + 21 * cd + (Math.random() - 0.5) * sh, wp.z + 11 * cd), camFollow);
-  camera.lookAt(wp.x, Math.max(wp.y, -4) + 1.0, wp.z);
+  // Diorama trailing camera — Land Sliders style: overhead tilt that still shows object sides & cliffs.
+  // Framerate-independent smoothing so 144Hz and 60Hz get the same feel; ease out slightly while dashing.
+  const camFollow = 1 - Math.pow(0.0015, dt);
+  const dashingNow = performance.now() < state.dashUntil;
+  const cd = settings.camDist * (dashingNow ? 1.06 : 1);
+  const falling = !state.grounded && state.y < -3;      // let the camera follow a plunge into the sea
+  const camY = (falling ? wp.y : Math.max(wp.y, -2)) + 21 * cd;
+  camera.position.lerp(new THREE.Vector3(wp.x + (Math.random() - 0.5) * sh, camY + (Math.random() - 0.5) * sh, wp.z + 11 * cd), camFollow);
+  camera.lookAt(wp.x, (falling ? wp.y : Math.max(wp.y, -4)) + 1.0, wp.z);
+  // FOV punch — quick zoom on dash/land/hit/portal, always eased back to base
+  if (state.fovPunch > 0.01) { state.fovPunch = THREE.MathUtils.lerp(state.fovPunch, 0, Math.min(1, 9 * dt)); camera.fov = CAM_BASE_FOV + state.fovPunch; camera.updateProjectionMatrix(); }
+  else if (camera.fov !== CAM_BASE_FOV) { camera.fov = CAM_BASE_FOV; camera.updateProjectionMatrix(); }
   renderer.render(scene, camera);
 }
 
@@ -2411,6 +2724,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { clo
 applyCharacter();
 reflectSettings();
 enterHubMode();
+if (!localStorage.getItem('ls_intro')) { overlay.classList.remove('hidden'); document.getElementById('hubOverlay').style.display = 'none'; }   // Erst-Start: kurze Anleitung statt Hub-Titel
 updateHUD();
 animate();
 </script>
