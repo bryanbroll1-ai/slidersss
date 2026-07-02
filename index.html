@@ -83,6 +83,15 @@
   #hubTitle{font-size:clamp(26px,6vw,48px);font-weight:900;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.8),0 0 40px rgba(255,210,60,0.6);letter-spacing:-0.5px;pointer-events:none;user-select:none;}
   #hubHint{margin-top:8px;font-size:clamp(13px,2vw,16px);color:rgba(255,255,255,0.85);text-shadow:0 2px 8px rgba(0,0,0,0.7);pointer-events:none;user-select:none;font-weight:700;}
 
+  /* ── Loader & Fehleranzeige ── */
+  #loader{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#12202e;color:#cfe8ff;font-weight:800;font-size:16px;}
+  .spinRing{width:52px;height:52px;border-radius:50%;border:5px solid rgba(140,200,255,0.25);border-top-color:#7fd0ff;animation:spinR 0.9s linear infinite;}
+  @keyframes spinR{to{transform:rotate(360deg)}}
+  #loadErr{position:fixed;inset:0;z-index:41;display:none;align-items:center;justify-content:center;background:#1a1216;color:#fff;padding:24px;text-align:center;}
+  #loadErr .errBox{max-width:420px;font-size:16px;line-height:1.6;}
+  #loadErr .msg{opacity:.8;font-size:14px;margin:10px 0 18px;}
+  #loadErr button{font-family:inherit;font-size:16px;font-weight:800;padding:12px 32px;border:none;border-radius:26px;background:linear-gradient(135deg,#ffe040,#ff9500);color:#3a2000;cursor:pointer;}
+
   /* ── Fever edge glow ── */
   #feverGlow{position:fixed;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(ellipse at 50% 50%,transparent 52%,rgba(255,120,20,0.32) 100%);}
   #feverGlow.on{opacity:1;animation:feverPulse 1.1s ease-in-out infinite;}
@@ -136,7 +145,7 @@
 <div id="toast"></div>
 <div id="overlay" class="hidden">
   <h1>🏔️ Land Sliders 3D</h1>
-  <p><b>Wische</b>, um die Welt unter deiner Figur zu verschieben — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tipp</b> stoppt, <b>Doppeltipp</b> 💨 dasht, und in der Luft wird der Dash zum <b>Slam</b>! Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b>, <b>Shift</b>, <b>P</b>.</p>
+  <p><b>Wische</b>, um die Welt unter deiner Figur zu verschieben — lange Swipes geben Schwung, kurze bewegen präzise. <b>Tipp</b> stoppt, <b>Doppeltipp</b> 💨 dasht. In der Luft: <b>Tipp</b> = ✨ Trick, <b>Doppeltipp</b> = 💥 Slam! Am PC: <b>WASD/Pfeile</b>, <b>Leertaste</b>, <b>Shift</b>, <b>P</b>.</p>
   <p>Sammle die <b>Lieblings-Objekte</b> deines Charakters, löse das 🔢 Rätsel und spring durchs 🌀 Portal — Welt für Welt, immer tiefer. Combos ab <b>×8</b> zünden das 🔥 <b>Fieber</b> für Extra-Punkte. Meide 👾 Jäger, 🔨 Abrissbirnen und die Lücken im Zaun!</p>
   <p>Im <b>Hub</b> gleitest du einfach zur Plattform deiner Wahl: Charaktere &amp; Boosts, Einstellungen — oder direkt ins Spiel.</p>
   <button id="startBtn">Los geht's!</button>
@@ -178,12 +187,39 @@
 <div id="flash"></div>
 <div id="floatTexts"></div>
 <div id="levelFade"></div>
+<div id="loader"><div class="spinRing"></div><div class="ldTxt">Insel wird gebaut …</div></div>
+<div id="loadErr"><div class="errBox">⚠️ <b>Das Spiel konnte nicht geladen werden.</b><div class="msg">Die 3D-Bibliothek (three.js) war über keinen Server erreichbar. Bitte Internetverbindung prüfen.</div><button onclick="location.reload()">🔄 Neu laden</button></div></div>
 
-<script type="importmap">
-{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+<script>
+// Fängt JEDEN Fehler ab, bevor der Bildschirm still schwarz bleibt
+window.addEventListener('error', e => {
+  const ld = document.getElementById('loader'), er = document.getElementById('loadErr');
+  if (ld) ld.style.display = 'none';
+  if (er && er.style.display !== 'flex') {
+    er.style.display = 'flex';
+    const m = er.querySelector('.msg'); if (m && e.message) m.textContent = e.message;
+  }
+});
 </script>
 <script type="module">
-import * as THREE from 'three';
+// __THREE_LOADER_START__
+// Kein importmap mehr (braucht Safari 16.4+ und hat nur EINE CDN-Quelle) —
+// stattdessen dynamischer Import mit Fallback-Kette + sichtbarer Fehlermeldung.
+const THREE = await (async () => {
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+    'https://unpkg.com/three@0.160.0/build/three.module.js',
+    'https://esm.sh/three@0.160.0/build/three.module.js',
+  ];
+  for (const u of urls) {
+    try { const m = await import(u); if (m && m.WebGLRenderer) return m; }
+    catch (e) { console.warn('three.js laden fehlgeschlagen:', u, e); }
+  }
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('loadErr').style.display = 'flex';
+  throw new Error('three.js konnte von keinem CDN geladen werden');
+})();
+// __THREE_LOADER_END__
 
 // ===================================================================
 //  Renderer / Szene / Kamera / Licht
@@ -292,6 +328,7 @@ let edgeRadii = [], edgeSegs = 28;
 let hills = [];
 let stars = [], coins = [], obstacles = [], holes = [], enemies = [], powerups = [], pads = [], buttons = [], ropes = [], hazards = [], bridges = [], subChunks = [], floorHaz = [], gems = [];
 let fenceGaps = [];  // [{angle, hw}] — Lücken im Zaun, wo man herunterfallen kann
+let tufts = [];      // Grasbüschel: wackeln + rascheln, wenn man durchgleitet (ASMR)
 let elevatedPads = [], elevators = [];       // raised platforms & moving lifts
 let countObjects = [];                       // objects to count in count-puzzle
 let puzzleMode = 'sequence';                 // 'sequence' | 'count'
@@ -568,7 +605,7 @@ function makeLevel(level) {
   if (typeof setupAmbient === 'function') setupAmbient(t);
   if (islandGroup) { world.remove(islandGroup); disposeGroup(islandGroup); }
   islandGroup = new THREE.Group();
-  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = []; fenceGaps = [];
+  stars = []; coins = []; obstacles = []; holes = []; enemies = []; powerups = []; pads = []; buttons = []; ropes = []; hazards = []; bridges = []; subChunks = []; floorHaz = []; gems = []; fenceGaps = []; tufts = [];
   elevatedPads = []; elevators = []; countObjects = []; puzzleMode = 'sequence'; countPuzzleAns = 0;
   goal = null; occupied.length = 0; avoid.length = 0;
   if (state) { state.puzzleSolved = false; state.puzzleStep = 0; }
@@ -1123,6 +1160,7 @@ function addThemeTuft(x, z, t) {
     g.add(blade);
   }
   g.position.set(x, gy, z); islandGroup.add(g);
+  tufts.push({ g, wob: 0 });
 }
 
 // --- Lava-Tümpel (Vulkan): Bodengefahr ---------------------------------------
@@ -1856,10 +1894,32 @@ const Sound = (() => {
     }
   }
   function startMusicTimer() { if (!musicTimer) { nextNote = ctx.currentTime + 0.1; musicTimer = setInterval(musicLoop, 220); } }
+  // --- ASMR-Schicht: rosa Rauschen für Gleit-Zischen + leisen Dauerwind ---
+  let noiseBuf = null, slideGain = null, slideFilter = null, windGain = null;
+  function makeNoiseBuf() {
+    if (noiseBuf) return noiseBuf;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * 2)), buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0); let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.2; }
+    noiseBuf = buf; return buf;
+  }
+  function startLoops() {
+    if (slideGain) return;
+    makeNoiseBuf();
+    const sSrc = ctx.createBufferSource(); sSrc.buffer = noiseBuf; sSrc.loop = true;
+    slideFilter = ctx.createBiquadFilter(); slideFilter.type = 'lowpass'; slideFilter.frequency.value = 600;
+    slideGain = ctx.createGain(); slideGain.gain.value = 0;
+    sSrc.connect(slideFilter); slideFilter.connect(slideGain); slideGain.connect(master); sSrc.start();
+    const wSrc = ctx.createBufferSource(); wSrc.buffer = noiseBuf; wSrc.loop = true; wSrc.playbackRate.value = 0.45;
+    const wFil = ctx.createBiquadFilter(); wFil.type = 'lowpass'; wFil.frequency.value = 320;
+    windGain = ctx.createGain(); windGain.gain.value = 0.016;
+    wSrc.connect(wFil); wFil.connect(windGain); windGain.connect(master); wSrc.start();
+  }
   function ensure() {
     if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.25; master.connect(ctx.destination); }
     if (ctx.state === 'suspended') ctx.resume();
     if (musicStyle) startMusicTimer();
+    startLoops();
   }
   function tone(freq, dur, type = 'sine', vol = 1, slide = 0) {
     if (!on || !ctx) return;
@@ -1869,10 +1929,28 @@ const Sound = (() => {
     o.connect(g); g.connect(master); o.start(); o.stop(ctx.currentTime + dur + 0.02);
   }
   return {
-    init: ensure, toggle() { on = !on; return on; },
+    init: ensure, toggle() { on = !on; if (windGain) windGain.gain.value = on ? 0.016 : 0; if (!on && slideGain) slideGain.gain.value = 0; return on; },
     music(style) { musicStyle = style; if (ctx) startMusicTimer(); },   // Tonart wechseln oder (nach init) starten
-    star(c) { ensure(); tone(440 + c * 110, 0.08, 'triangle', 0.7); tone(660 + c * 90, 0.16, 'triangle', 0.85, 180); },
-    coin() { ensure(); tone(1200, 0.06, 'square', 0.3); tone(1600, 0.07, 'square', 0.25); tone(2000, 0.05, 'square', 0.18); },
+    // Gleit-Zischen: Lautstärke & Helligkeit folgen der Geschwindigkeit (jeden Frame aufgerufen)
+    slide(v) {
+      if (!ctx || !slideGain) return;
+      const g = on ? Math.min(0.085, v * 0.085) : 0;
+      slideGain.gain.setTargetAtTime(g, ctx.currentTime, 0.07);
+      slideFilter.frequency.setTargetAtTime(380 + v * 1400, ctx.currentTime, 0.09);
+    },
+    // kurzes weiches Gras-Rascheln beim Durchgleiten
+    rustle() {
+      if (!on || !ctx || !noiseBuf) return;
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.playbackRate.value = 1.5 + Math.random();
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2000 + Math.random() * 1400;
+      const g = ctx.createGain(); const t0 = ctx.currentTime;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.045, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t0); s.stop(t0 + 0.18);
+    },
+    trick() { ensure(); tone(660, 0.06, 'sine', 0.3); tone(990, 0.1, 'sine', 0.25, 180); },
+    // weiche, runde Sammel-Töne (Sinus statt greller Rechteck-/Dreieckklänge)
+    star(c) { ensure(); tone(480 + c * 70, 0.09, 'sine', 0.5); tone(760 + c * 80, 0.15, 'sine', 0.38, 140); tone(1850, 0.03, 'sine', 0.1); },
+    coin() { ensure(); tone(1180, 0.05, 'sine', 0.24); tone(1570, 0.07, 'sine', 0.18); },
     bounce() { ensure(); tone(180, 0.14, 'sawtooth', 0.4, -80); tone(90, 0.1, 'sine', 0.5); },
     boing() { ensure(); tone(160, 0.05, 'sine', 0.5); tone(220, 0.22, 'sine', 0.8, 620); },
     lift() { ensure(); tone(260, 0.04, 'sine', 0.4); tone(310, 0.38, 'sine', 0.7, 820); },
@@ -1885,6 +1963,25 @@ const Sound = (() => {
     lose() { ensure(); [380, 300, 240, 170, 120].forEach((f, i) => setTimeout(() => tone(f, 0.28, 'sawtooth', 0.55), i * 120)); },
   };
 })();
+
+// Sanfte Haptik (Android-Vibration): winzige Pulse machen Einsammeln/Landen fühlbar
+function buzz(ms) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
+
+// --- Eingesammelte Objekte fliegen zum Spieler und schrumpfen weg (statt hart zu verschwinden) ---
+const flyers = [], _flyTarget = new THREE.Vector3();
+function startFly(m) { m.userData.flyT = 0; flyers.push(m); world.add(m); }
+function updateFlyers(dt) {
+  for (let i = flyers.length - 1; i >= 0; i--) {
+    const m = flyers[i];
+    m.userData.flyT += dt * 5.5;
+    const k = Math.min(1, m.userData.flyT);
+    _flyTarget.set(state.pos.x, state.y + 0.9, state.pos.y);
+    m.position.lerp(_flyTarget, Math.min(1, 12 * dt));
+    m.rotation.y += dt * 14;
+    m.scale.setScalar(Math.max(0.01, 1 - k));
+    if (k >= 1) { world.remove(m); disposeGroup(m); flyers.splice(i, 1); }
+  }
+}
 
 // ===================================================================
 //  Zustand
@@ -1908,7 +2005,7 @@ const state = {
   puzzleSolved: false, puzzleStep: 0, puzzleCdUntil: 0, coyoteUntil: 0,
   dashUntil: 0, dashReadyAt: 0, dashDirX: 0, dashDirZ: 1,
   runStars: 0, runCoins: 0, runStart: 0, transitioning: false, countHint: '',
-  fovPunch: 0, padLockUntil: 0, fever: false,
+  fovPunch: 0, padLockUntil: 0, fever: false, trickDone: false, trickUntil: 0,
   slamArmed: false, depth: +(localStorage.getItem('landsliders_depth') || 0),
   runCoinMult: 1, buyShield: false, buyLife: false, buyDoubler: false,
 };
@@ -1957,9 +2054,10 @@ function endDrag(e) {
   try { if (e && drag.pid >= 0) renderer.domElement.releasePointerCapture(drag.pid); } catch (_) {}
   const wasTap = drag.totalDist < TAP_MAX_DIST && performance.now() - drag.startT < TAP_MAX_TIME;
   if (wasTap) {
-    state.vel.set(0, 0);
     const nowT = performance.now();
-    if (nowT - drag.lastTapT < 320) tryDash();   // double-tap to dash
+    if (state.running && !state.grounded) doAirTrick();   // Luft-Tap: Style-Trick statt Stopp
+    else state.vel.set(0, 0);
+    if (nowT - drag.lastTapT < 320) tryDash();   // double-tap to dash (in der Luft: Slam)
     drag.lastTapT = nowT;
   } else { state.vel.x = drag.fvx; state.vel.y = drag.fvy; }   // smooth flick momentum (not the noisy last frame)
 }
@@ -2173,7 +2271,7 @@ startBtn.addEventListener('click', () => { localStorage.setItem('ls_intro', '1')
 //  Spiel-Logik
 // ===================================================================
 const clock = new THREE.Clock();
-function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.7; punchFOV(6); state.fever = false; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }
+function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.7; punchFOV(6); state.fever = false; buzz(45); showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }
 const COMBO_TIERS = { 5: ['Combo!', 0xffcc33], 8: ['On Fire! 🔥', 0xff8a2a], 12: ['Unstoppable!', 0xff5a2a], 16: ['Blazing!', 0xff3a6a], 20: ['LEGENDARY! ⚡', 0xffe23a] };
 function bumpCombo() {
   state.comboTimer = 2.5;
@@ -2188,6 +2286,14 @@ function bumpCombo() {
   }
 }
 function launch(power) { state.grounded = false; state.vy = power; state.y += 0.2; state.landSquash = 0; state.padLockUntil = performance.now() + 260; }
+
+// --- Luft-Trick: Tap in der Luft dreht eine Pirouette und gibt Style-Punkte (1× pro Sprung) ---
+function doAirTrick() {
+  if (state.trickDone || state.paused || performance.now() < state.dashUntil) return;
+  state.trickDone = true; state.trickUntil = performance.now() + 420;
+  addScore(30); Sound.trick(); buzz(8);
+  showFloat('✨ Trick +30', state.pos.x, state.y + 1.6, state.pos.y, '#bff0ff');
+}
 
 // --- Dash: kurzer Geschwindigkeits-Schub mit Cooldown; in der Luft -> Sturz-Slam ---
 function tryDash() {
@@ -2316,7 +2422,7 @@ function step(dt) {
   }
 
   // --- Sprungfedern (mit kurzer Anti-Retrigger-Sperre, damit man nicht endlos hüpft) ---
-  if (state.grounded && performance.now() >= (state.padLockUntil || 0)) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power * (tr === 'pad' ? 1.45 : 1) * (tr === 'float' ? 1.18 : 1)); Sound.boing(); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
+  if (state.grounded && performance.now() >= (state.padLockUntil || 0)) for (const pad of pads) { if (Math.hypot(state.pos.x - pad.position.x, state.pos.y - pad.position.z) < pad.userData.r) { pad.userData.squash = 1; launch(pad.userData.power * (tr === 'pad' ? 1.45 : 1) * (tr === 'float' ? 1.18 : 1)); Sound.boing(); buzz(12); burst(pad.position.x, pad.position.y + 0.5, pad.position.z, 0x55e07a, 12, 6); break; } }
 
   // --- Vertikal ---
   if (state.grounded) {
@@ -2337,7 +2443,8 @@ function step(dt) {
       state.landSquash = Math.min(1, 0.38 + impact * 0.046);
       if (s2.type === 'elevator') Sound.lift(); else Sound.land();
       if (impact > 4) burst(state.pos.x, state.y + 0.05, state.pos.y, 0xffffff, 8, 4);
-      if (impact > 8) { punchFOV(3.5); state.shake = Math.max(state.shake, 0.25); }
+      if (impact > 8) { punchFOV(3.5); state.shake = Math.max(state.shake, 0.25); buzz(14); }
+      state.trickDone = false;   // Luft-Trick nach jeder Landung wieder frei
       // Air-dash slam landing: shockwave that knocks nearby enemies back
       if (state.slamArmed) {
         state.slamArmed = false; state.shake = Math.max(state.shake, 0.55); punchFOV(6); showFlash(0x9fe0ff, 0.28); Sound.boing();
@@ -2455,7 +2562,7 @@ function step(dt) {
     if (magnet && dd < 36) { s.position.x += dx * Math.min(1, 6 * dt); s.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - s.position.x; dz = state.pos.y - s.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.4 && Math.abs(state.y + 1.1 - s.position.y) < 2) {
       const isBonus = !!s.userData.bonus;
-      islandGroup.remove(s); stars.splice(i, 1); if (!isBonus) state.collected++; state.runStars++; bumpCombo();
+      islandGroup.remove(s); startFly(s); stars.splice(i, 1); if (!isBonus) state.collected++; state.runStars++; bumpCombo(); buzz(9);
       const pts = Math.round((isBonus ? 180 : 100) * state.combo * (tr === 'score' ? 1.5 : 1) * (state.fever ? 1.5 : 1)); addScore(pts);
       if (isBonus) { state.coins += 3; state.runCoins += 3; localStorage.setItem('landsliders_coins', state.coins); }
       const fi = favInfo(state.character);
@@ -2471,7 +2578,7 @@ function step(dt) {
     const c = coins[i]; let dx = state.pos.x - c.position.x, dz = state.pos.y - c.position.z, dd = dx * dx + dz * dz;
     if (magnet && dd < 36) { c.position.x += dx * Math.min(1, 6 * dt); c.position.z += dz * Math.min(1, 6 * dt); dx = state.pos.x - c.position.x; dz = state.pos.y - c.position.z; dd = dx * dx + dz * dz; }
     if (dd < 1.3 && Math.abs(state.y + 1.0 - c.position.y) < 2.2) {
-      islandGroup.remove(c); coins.splice(i, 1);
+      islandGroup.remove(c); startFly(c); coins.splice(i, 1); buzz(6);
       let got = (tr === 'coin2' ? 2 : 1) * (state.runCoinMult || 1); state.coins += got; state.runCoins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(Math.round(25 * (state.fever ? 1.5 : 1)));
       bumpCombo();   // coins keep the combo alive too, so fever isn't star-only
       Sound.coin(); burst(c.position.x, c.position.y, c.position.z, 0xffc107, 8, 4, true);
@@ -2483,7 +2590,7 @@ function step(dt) {
   for (let i = gems.length - 1; i >= 0; i--) {
     const gm = gems[i];
     if (Math.hypot(state.pos.x - gm.position.x, state.pos.y - gm.position.z) < 1.5 && Math.abs(state.y + 1 - gm.userData.baseY) < 2.4) {
-      islandGroup.remove(gm); gems.splice(i, 1);
+      islandGroup.remove(gm); startFly(gm); gems.splice(i, 1); buzz(20);
       const gain = tr === 'coin2' ? 40 : 20; state.coins += gain; state.runCoins += gain; localStorage.setItem('landsliders_coins', state.coins);
       addScore(500); Sound.power(); showFlash(0x59f0ff, 0.32);
       burst(gm.position.x, gm.userData.baseY, gm.position.z, 0x59f0ff, 26, 9, true);
@@ -2495,7 +2602,7 @@ function step(dt) {
   for (let i = powerups.length - 1; i >= 0; i--) {
     const pu = powerups[i];
     if (Math.hypot(state.pos.x - pu.position.x, state.pos.y - pu.position.z) < 1.3 && Math.abs(state.y - pu.position.y) < 2) {
-      islandGroup.remove(pu); powerups.splice(i, 1); Sound.power();
+      islandGroup.remove(pu); startFly(pu); powerups.splice(i, 1); Sound.power(); buzz(14);
       const col = pu.userData.kind === 'shield' ? 0x33c1ff : 0xff5fa8;
       if (pu.userData.kind === 'shield') { state.shield = true; showToast('🛡 Schild aktiv!'); } else { state.magnetUntil = performance.now() + 8000; showToast('🧲 Magnet für 8s!'); }
       burst(pu.position.x, pu.position.y + 1.2, pu.position.z, col, 16, 7); showFlash(col, 0.3);
@@ -2559,10 +2666,12 @@ function updateSea(t) {
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
+  // ASMR-Gleitgeräusch: Lautstärke folgt der echten Geschwindigkeit (auch im Hub)
+  Sound.slide(!state.paused && state.grounded && (state.running || hubMode) ? Math.min(1, state.vel.length() / MAX_SPEED) : 0);
   if (state.paused) { renderer.render(scene, camera); return; }
   if (hubMode) {
     stepHub(dt);
-    updateParticles(dt); updateTrail(dt);
+    updateParticles(dt); updateTrail(dt); updateFlyers(dt);
     const t2 = performance.now() / 1000;
     updateSea(t2);
     for (const c of cloudGroup.children) c.rotation.y += c.userData.spin * dt;
@@ -2573,7 +2682,7 @@ function animate() {
     camera.lookAt(wp2.x, wp2.y + 0.8, wp2.z);
     renderer.render(scene, camera); return;
   }
-  step(dt); updateParticles(dt); updateTrail(dt); updateAmbient(dt);
+  step(dt); updateParticles(dt); updateTrail(dt); updateAmbient(dt); updateFlyers(dt);
   const t = performance.now() / 1000;
 
   // Speed trail + slide dust (gated by quality)
@@ -2678,8 +2787,23 @@ function animate() {
   }
   for (let i = 0; i < legMeshes.length; i++) { const off = (i % 2 === 0 ? 0 : Math.PI); if (!state.grounded) legMeshes[i].rotation.x = -0.7; else legMeshes[i].rotation.x = moving ? Math.sin(state.animPhase + off) * Math.min(0.9, spd * 0.08) : THREE.MathUtils.lerp(legMeshes[i].rotation.x, 0, Math.min(1, 8 * dt)); }
   const stretch = THREE.MathUtils.clamp(state.vy * 0.03, -0.25, 0.35);
-  const sx = 1 - stretch * 0.5 + state.landSquash * 0.3, sy = 1 + stretch - state.landSquash * 0.5;
+  // Ruhiges Atmen im Stand — die Figur lebt auch, wenn nichts passiert
+  const breathe = (moving || !state.grounded) ? 0 : Math.sin(t * 2.2) * 0.015;
+  const sx = (1 - stretch * 0.5 + state.landSquash * 0.3) * (1 - breathe * 0.5), sy = (1 + stretch - state.landSquash * 0.5) * (1 + breathe);
   rig.scale.set(sx, sy, sx); rig.rotation.x = state.leanX; rig.rotation.z = state.leanZ; rig.position.y = moving ? Math.abs(Math.sin(state.animPhase)) * 0.12 : 0;
+  // Luft-Trick: volle Pirouette über 420ms
+  rig.rotation.y = performance.now() < state.trickUntil ? (1 - (state.trickUntil - performance.now()) / 420) * Math.PI * 2 : 0;
+  // Grasbüschel wackeln, wenn man schnell hindurchgleitet (+ leises Rascheln)
+  for (const tf of tufts) {
+    if (tf.wob > 0) {
+      tf.wob = Math.max(0, tf.wob - dt * 2.2);
+      tf.g.rotation.z = Math.sin(t * 24) * 0.35 * tf.wob;
+      tf.g.scale.y = 1 - 0.22 * tf.wob;
+    } else if (state.grounded && spd > 5) {
+      const dx = state.pos.x - tf.g.position.x, dz = state.pos.y - tf.g.position.z;
+      if (dx * dx + dz * dz < 1.44) { tf.wob = 1; if (Math.random() < 0.45) Sound.rustle(); }
+    }
+  }
 
   // --- Combo bar + fever glow + dash cooldown HUD ---
   if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 2.5) + ')'; comboFillEl.style.background = state.fever ? 'linear-gradient(90deg,#ff5a2a,#ffe23a)' : 'linear-gradient(90deg,#ff9d45,#ffd23f)'; }
@@ -2727,6 +2851,7 @@ enterHubMode();
 if (!localStorage.getItem('ls_intro')) { overlay.classList.remove('hidden'); document.getElementById('hubOverlay').style.display = 'none'; }   // Erst-Start: kurze Anleitung statt Hub-Titel
 updateHUD();
 animate();
+{ const ld = document.getElementById('loader'); if (ld) ld.style.display = 'none'; }   // Spiel läuft — Ladebildschirm weg
 </script>
 </body>
 </html>
