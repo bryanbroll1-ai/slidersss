@@ -104,6 +104,14 @@
   #prizeName{position:absolute;margin-top:170px;font-size:24px;font-weight:900;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,0.7);opacity:0;transition:opacity .3s;}
   #prizeName.vis{opacity:1;}
 
+  /* ── Run-Ergebnis ── */
+  #results{position:fixed;inset:0;z-index:27;background:rgba(6,12,22,0.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;display:none;align-items:center;justify-content:center;padding:24px;}
+  #results.open{display:flex;}
+  .resCard{background:rgba(20,30,50,0.85);border:2px solid rgba(255,255,255,0.15);border-radius:24px;padding:26px 34px;text-align:center;box-shadow:0 12px 44px rgba(0,0,0,0.5);max-width:380px;}
+  .resCard h2{margin:0 0 10px;font-size:30px;letter-spacing:-.3px;}
+  #resNewBest{color:#ffd23f;font-weight:900;font-size:17px;margin-bottom:8px;animation:badgePop .4s ease-out;}
+  #resGrid{font-size:15.5px;margin:6px 0 18px;line-height:1.8;}
+
   /* ── Loader & Fehleranzeige ── */
   #loader{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#12202e;color:#cfe8ff;font-weight:800;font-size:16px;padding:24px;text-align:center;}
   .spinRing{width:52px;height:52px;border-radius:50%;border:5px solid rgba(140,200,255,0.25);border-top-color:#7fd0ff;animation:spinR 0.9s linear infinite;}
@@ -175,6 +183,15 @@
   <p>Im <b>Hub</b> gleitest du einfach zur Plattform deiner Wahl: Charaktere &amp; Boosts, Einstellungen — oder direkt ins Spiel.</p>
   <button id="startBtn">Los geht's!</button>
 </div>
+<div id="results">
+  <div class="resCard">
+    <h2 id="resTitle">💧 Game Over</h2>
+    <div id="resNewBest" class="hidden">🎉 NEUER REKORD!</div>
+    <div id="resGrid" class="statGrid"></div>
+    <button class="menuBtn" id="resRetryBtn">🔁 Nochmal!</button>
+    <button class="menuBtn ghost" id="resHubBtn">🏠 Zum Hub</button>
+  </div>
+</div>
 <div id="pause">
   <h2>⏸ Pause</h2>
   <div id="pauseStats"></div>
@@ -184,6 +201,7 @@
 </div>
 <div id="settings">
   <h2>⚙️ Einstellungen</h2>
+  <div class="setRow"><label>Lautstärke <span id="volVal">60%</span></label><input type="range" id="volSlider" min="0" max="1" step="0.05" value="0.6"></div>
   <div class="setRow"><label>Wisch-Empfindlichkeit <span id="sensVal">1.0×</span></label><input type="range" id="sensSlider" min="0.5" max="1.8" step="0.05" value="1"></div>
   <div class="setRow"><label>Kamera-Abstand <span id="camVal">Normal</span></label><input type="range" id="camSlider" min="0.8" max="1.4" step="0.05" value="1"></div>
   <div class="setRow"><label>Grafik-Effekte</label><div class="segBtns" id="qualitySeg"><button data-q="high" class="on">Hoch</button><button data-q="low">Sparsam</button></div></div>
@@ -53692,8 +53710,29 @@ function makeFavItem(charId) {
   return g;
 }
 
+// Autorisierte Schwierigkeitskurve: feste Werte je Level (keine Zufalls-Inversionen mehr),
+// ab Level 7 (Endless) sanft weiter skalierend mit harten Caps
+const LEVEL_TUNING = [null,
+  { chasers: 0, pushers: 0, balls: 0, holes: 0, puzzle: 0, platforms: 0, springs: 1 },
+  { chasers: 1, pushers: 0, balls: 0, holes: 1, puzzle: 2, platforms: 1, springs: 1 },
+  { chasers: 1, pushers: 1, balls: 1, holes: 1, puzzle: 3, platforms: 1, springs: 2 },
+  { chasers: 2, pushers: 1, balls: 1, holes: 2, puzzle: 3, platforms: 2, springs: 2 },
+  { chasers: 2, pushers: 2, balls: 2, holes: 2, puzzle: 4, platforms: 2, springs: 2 },
+  { chasers: 3, pushers: 2, balls: 2, holes: 3, puzzle: 4, platforms: 2, springs: 3 },
+];
+function tuningFor(level) {
+  if (level <= 6) return LEVEL_TUNING[level];
+  const extra = Math.floor((level - 6) / 2);
+  return {
+    chasers: Math.min(6, 3 + extra), pushers: Math.min(4, 2 + Math.floor(extra / 2)),
+    balls: Math.min(3, 2 + Math.floor(extra / 2)), holes: Math.min(5, 3 + Math.floor(extra / 2)),
+    puzzle: 5, platforms: 2, springs: 3,
+  };
+}
+
 function makeLevel(level) {
   const t = themeFor(level); curTheme = t; applyTheme(t);
+  const tune = tuningFor(level);
   if (typeof setupAmbient === 'function') setupAmbient(t);
   if (islandGroup) { world.remove(islandGroup); disposeGroup(islandGroup); }
   islandGroup = new THREE.Group();
@@ -53740,7 +53779,7 @@ function makeLevel(level) {
   }
 
   // --- Löcher: Positionen VOR dem Terrain festlegen, damit echte Lücken hineingeschnitten werden ---
-  const holeCount = Math.max(0, level - 1) + rint(0, 1);
+  const holeCount = tune.holes + rint(0, 1);
   for (let i = 0; i < holeCount; i++) {
     const r = 1.4 + Math.random();
     const p = freeSpot(0.72, r + 1.6, { flat: true, offPath: true });
@@ -53763,7 +53802,7 @@ function makeLevel(level) {
   }
 
   // --- Abrissbirnen zuerst: ihr Schwungbereich reserviert Platz für alles Weitere ---
-  if (level >= 3) for (let i = 0; i < Math.min(3, Math.floor((level - 1) / 2)); i++) addWreckingBall(Math.min(level, 10));
+  for (let i = 0; i < tune.balls; i++) addWreckingBall(Math.min(level, 10));
 
   // --- Themen-Häuser/Strukturen (solide, off-path) ---
   const houseCount = 1 + Math.floor(level / 2) + rint(0, 1);
@@ -53798,30 +53837,23 @@ function makeLevel(level) {
   if (t.style === 'desert') for (let i = 0; i < 2; i++) addTumbleweed(t);
 
   // --- Sprungfedern (hexagonal rot) ---
-  const padCount = level >= 2 ? 1 + Math.floor(level / 3) + rint(0, 1) : 1;
-  for (let i = 0; i < padCount; i++) addPad(level);
+  for (let i = 0; i < tune.springs; i++) addPad(level);
 
-  // --- Erhöhte Plattformen (ab Level 2, mit Aufzug) ---
-  if (level >= 2) {
-    const epCount = 1 + rint(0, Math.min(2, Math.floor(level / 2)));
-    for (let i = 0; i < epCount; i++) addElevatedPlatform(t, level);
-  }
+  // --- Erhöhte Plattformen (mit Aufzug) ---
+  for (let i = 0; i < tune.platforms; i++) addElevatedPlatform(t, level);
 
   // --- Rätsel (ab Level 2): Sequenz-Rätsel oder Zähl-Rätsel ---
   if (level >= 2) {
     if (level >= 4 && Math.random() < 0.45) {
       addCountPuzzle(t);  // Zähl-Rätsel: wie viele Objekte?
     } else {
-      const pn = Math.min(2 + Math.floor((level - 1) / 2), 5);
-      for (let i = 1; i <= pn; i++) addButton(i, t);
+      for (let i = 1; i <= tune.puzzle; i++) addButton(i, t);
     }
   }
 
-  // --- Gegner (themenpassend eingefärbt; für den endlosen Abstieg gedeckelt, damit es fordernd aber fair bleibt) ---
-  const chasers = Math.min(6, Math.max(0, level - 1) + rint(0, 1));
-  const pushers = Math.min(4, Math.floor(level / 2));
-  for (let i = 0; i < chasers; i++) spawnEnemy('chaser', Math.min(level, 10), t);
-  for (let i = 0; i < pushers; i++) spawnEnemy('pusher', Math.min(level, 10), t);
+  // --- Gegner (themenpassend, aus der Kurve; Tempo hart gedeckelt) ---
+  for (let i = 0; i < tune.chasers; i++) spawnEnemy('chaser', Math.min(level, 10), t);
+  for (let i = 0; i < tune.pushers; i++) spawnEnemy('pusher', Math.min(level, 10), t);
 
   // --- Lieblings-Sammelobjekte: liegen FLACH am Boden (wie in der Vorlage) und NUR auf der
   // Basis-Terrasse, damit Terrassen nie ein Pflicht-Objekt unerreichbar machen ---
@@ -53847,6 +53879,7 @@ function makeLevel(level) {
 
   if (level >= 2) spawnPowerup('shield');
   if (level >= 3) spawnPowerup('magnet');
+  if (level >= 3 && Math.random() < 0.5) spawnPowerup('heart');
 
   // --- Seltener Edelstein (große Beute, lohnt den Umweg) ---
   if (Math.random() < 0.6) addGem(t);
@@ -54493,13 +54526,24 @@ function spawnEnemy(kind, level, t) {
   eShadow.rotation.x = -Math.PI / 2; eShadow.position.y = 0.04; eShadow.scale.setScalar(sleeping ? 1.6 : (kind === 'pusher' ? 0.95 : 0.8)); e.add(eShadow);
   const p = freeSpot(0.75, sleeping ? 2.0 : 1.3);
   e.position.set(p.x, groundHeight(p.x, p.z), p.z);
-  e.userData = { kind, body, baseY, heading: Math.random() * Math.PI * 2, speed: (kind === 'pusher' ? 2.0 : (sleeping ? 2.2 : 2.7)) + level * 0.4, retarget: 0, bob: Math.random() * 6, windup: 0, cooldown: 0, r: rad, hitR, sleeping };
+  e.userData = { kind, body, baseY, heading: Math.random() * Math.PI * 2, speed: Math.min(6.2, (kind === 'pusher' ? 2.0 : (sleeping ? 2.2 : 2.7)) + level * 0.4), retarget: 0, bob: Math.random() * 6, windup: 0, cooldown: 0, r: rad, hitR, sleeping };
   islandGroup.add(e); enemies.push(e);
 }
 
 function spawnPowerup(kind) {
-  const g = new THREE.Group(); const color = kind === 'shield' ? 0x33c1ff : 0xff5fa8;
-  const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.35, flatShading: true })); orb.position.y = 1.2; g.add(orb);
+  const g = new THREE.Group();
+  let orb;
+  if (kind === 'heart') {
+    // Herz: zwei Kugeln + Kegel nach unten — gibt 1 Leben zurueck (max 4)
+    orb = new THREE.Group();
+    const hMat = new THREE.MeshLambertMaterial({ color: 0xff4060, emissive: 0xaa1030, emissiveIntensity: 0.35, flatShading: true });
+    for (const sx of [-0.17, 0.17]) { const lobe = new THREE.Mesh(new THREE.SphereGeometry(0.26, 9, 8), hMat); lobe.position.set(sx, 0.12, 0); orb.add(lobe); }
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.5, 8), hMat); tip.rotation.x = Math.PI; tip.position.y = -0.18; orb.add(tip);
+    orb.position.y = 1.2; g.add(orb);
+  } else {
+    const color = kind === 'shield' ? 0x33c1ff : 0xff5fa8;
+    orb = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.35, flatShading: true })); orb.position.y = 1.2; g.add(orb);
+  }
   const p = freeSpot(0.85, 1.2); g.position.set(p.x, groundHeight(p.x, p.z), p.z); g.userData = { kind, orb }; islandGroup.add(g); powerups.push(g);
 }
 
@@ -54980,7 +55024,7 @@ function buildHubIsland() {
 
 function stepHub(dt) {
   // While shop/settings are open on top of the hub, freeze the sim so the player can't drift or re-trigger pads
-  if (shop.classList.contains('open') || settingsEl.classList.contains('open')) { clearDrag(); return; }
+  if (shop.classList.contains('open') || settingsEl.classList.contains('open') || resultsEl.classList.contains('open')) { clearDrag(); return; }
   // Same 1:1 sticky glide physics as game, but no enemies/hazards
   state.prevVel.copy(state.vel);
   let inputActive = false;
@@ -55106,7 +55150,7 @@ function updateTrail(dt) {
 //  Audio
 // ===================================================================
 const Sound = (() => {
-  let ctx = null, master = null, on = true;
+  let ctx = null, master = null, on = true, vol = 0.6;
   // --- Sanfte generative Hintergrundmusik: Pentatonik je Welt, Lookahead-Scheduler ---
   let musicStyle = null, musicTimer = 0, nextNote = 0;
   const MUSIC_SCALES = {
@@ -55165,7 +55209,7 @@ const Sound = (() => {
     wSrc.connect(wFil); wFil.connect(windGain); windGain.connect(master); wSrc.start();
   }
   function ensure() {
-    if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.25; master.connect(ctx.destination); }
+    if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = vol * 0.42; master.connect(ctx.destination); }
     if (ctx.state === 'suspended') ctx.resume();
     if (musicStyle) startMusicTimer();
     startLoops();
@@ -55179,6 +55223,7 @@ const Sound = (() => {
   }
   return {
     init: ensure, toggle() { on = !on; if (windGain) windGain.gain.value = on ? 0.016 : 0; if (!on && slideGain) slideGain.gain.value = 0; return on; },
+    setVolume(v) { vol = v; if (master) master.gain.value = vol * 0.42; },
     music(style) { musicStyle = style; if (ctx) startMusicTimer(); },   // Tonart wechseln oder (nach init) starten
     // Gleit-Zischen: Lautstärke & Helligkeit folgen der Geschwindigkeit (jeden Frame aufgerufen)
     slide(v) {
@@ -55278,8 +55323,15 @@ const settings = {
   sens: +(localStorage.getItem('ls_sens') || 1),
   camDist: +(localStorage.getItem('ls_camdist') || 1),
   quality: localStorage.getItem('ls_quality') || 'high',
+  vol: +(localStorage.getItem('ls_vol') ?? 0.6),
 };
-function saveSettings() { localStorage.setItem('ls_sens', settings.sens); localStorage.setItem('ls_camdist', settings.camDist); localStorage.setItem('ls_quality', settings.quality); }
+function saveSettings() { localStorage.setItem('ls_sens', settings.sens); localStorage.setItem('ls_camdist', settings.camDist); localStorage.setItem('ls_quality', settings.quality); localStorage.setItem('ls_vol', settings.vol); }
+// Quality wirkt jetzt wirklich: 'Sparsam' schaltet Schatten ab und rendert mit PixelRatio 1
+function applyQuality() {
+  const low = settings.quality === 'low';
+  renderer.shadowMap.enabled = !low;
+  renderer.setPixelRatio(low ? 1 : Math.min(devicePixelRatio, 2));
+}
 
 const state = {
   running: false, paused: false, level: 1, lives: 3, collected: 0, total: 0,
@@ -55293,6 +55345,7 @@ const state = {
   dashUntil: 0, dashReadyAt: 0, dashDirX: 0, dashDirZ: 1,
   runStars: 0, runCoins: 0, runStart: 0, transitioning: false, countHint: '',
   fovPunch: 0, padLockUntil: 0, fever: false, trickDone: false, trickUntil: 0,
+  safeX: 0, safeZ: 0, safeT: 0,
   slamArmed: false, depth: +(localStorage.getItem('landsliders_depth') || 0),
   runCoinMult: 1, buyShield: false, buyLife: false, buyDoubler: false,
 };
@@ -55487,10 +55540,12 @@ const pauseBtn = document.getElementById('pauseBtn'), dashBtn = document.getElem
 const comboBarEl = document.getElementById('comboBar'), comboFillEl = document.getElementById('comboFill'), feverGlowEl = document.getElementById('feverGlow');
 const sensSlider = document.getElementById('sensSlider'), camSlider = document.getElementById('camSlider'), sensVal = document.getElementById('sensVal'), camVal = document.getElementById('camVal');
 function fmtCam(v) { return v < 0.92 ? 'Nah' : v > 1.12 ? 'Weit' : 'Normal'; }
-function reflectSettings() { sensSlider.value = settings.sens; camSlider.value = settings.camDist; sensVal.textContent = (+settings.sens).toFixed(2) + '×'; camVal.textContent = fmtCam(settings.camDist); document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality)); document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', +b.dataset.m === mode)); }
+function reflectSettings() { volSlider.value = settings.vol; volVal.textContent = Math.round(settings.vol * 100) + '%'; sensSlider.value = settings.sens; camSlider.value = settings.camDist; sensVal.textContent = (+settings.sens).toFixed(2) + '×'; camVal.textContent = fmtCam(settings.camDist); document.querySelectorAll('#qualitySeg button').forEach(b => b.classList.toggle('on', b.dataset.q === settings.quality)); document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', +b.dataset.m === mode)); }
 sensSlider.addEventListener('input', () => { settings.sens = +sensSlider.value; sensVal.textContent = settings.sens.toFixed(2) + '×'; saveSettings(); });
+const volSlider = document.getElementById('volSlider'), volVal = document.getElementById('volVal');
+volSlider.addEventListener('input', () => { settings.vol = +volSlider.value; volVal.textContent = Math.round(settings.vol * 100) + '%'; Sound.init(); Sound.setVolume(settings.vol); saveSettings(); });
 camSlider.addEventListener('input', () => { settings.camDist = +camSlider.value; camVal.textContent = fmtCam(settings.camDist); saveSettings(); });
-document.querySelectorAll('#qualitySeg button').forEach(b => b.addEventListener('click', () => { settings.quality = b.dataset.q; reflectSettings(); saveSettings(); if (curTheme) setupAmbient(curTheme); }));
+document.querySelectorAll('#qualitySeg button').forEach(b => b.addEventListener('click', () => { settings.quality = b.dataset.q; reflectSettings(); saveSettings(); applyQuality(); if (curTheme) setupAmbient(curTheme); }));
 document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { mode = +b.dataset.m; localStorage.setItem('ls_mode', mode); reflectSettings(); }));
 function openSettings() { reflectSettings(); settingsEl.classList.add('open'); }
 function closeSettings() { settingsEl.classList.remove('open'); }
@@ -55504,14 +55559,14 @@ function setPause(p) {
     document.getElementById('pauseStats').innerHTML = '<div class="statGrid"><span>🏆 Punkte</span><b>' + state.score + '</b><span>⭐ Sterne (Run)</span><b>' + state.runStars + '</b><span>🪙 Münzen (Run)</span><b>' + state.runCoins + '</b><span>🔥 Max-Combo</span><b>×' + state.comboMax + '</b><span>⏱ Zeit</span><b>' + secs + 's</b></div>';
   }
 }
-function quitToMenu() { state.running = false; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); saveProgress(); enterHubMode(); }
+function quitToMenu() { const res = captureRun(false, true); state.running = false; state.paused = false; state.transitioning = false; if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); saveProgress(); enterHubMode(); showResults(res); }
 pauseBtn.addEventListener('click', () => setPause(!state.paused));
 document.getElementById('resumeBtn').addEventListener('click', () => setPause(false));
 document.getElementById('quitBtn').addEventListener('click', quitToMenu);
 dashBtn.addEventListener('click', e => { e.preventDefault(); tryDash(); });
 
 function startLevel(level) {
-  state.level = level; state.total = makeLevel(level); state.collected = 0; respawn();
+  state.level = level; state.total = makeLevel(level); state.collected = 0; state.safeX = 0; state.safeZ = 0; state.safeT = 0; respawn();
   if (state.trait === 'shield') state.shield = true;
   // Ankunft wie vom Ballon abgesetzt: Figur fällt sanft aus der Luft ein und landet mit Squash
   state.grounded = false; state.y = groundHeight(0, 0) + 7; state.vy = -1.5;
@@ -55535,7 +55590,9 @@ function transitionToLevel(nextLevel) {
     }, 90);
   }, 360);                                        // entspricht der CSS-Übergangszeit
 }
-function respawn() { clearDrag(); state.pos.set(0, 0); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(0, 0); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(0, state.y, 0); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
+function respawn() { respawnAt(0, 0); }
+// Checkpoint-Respawn: zurueck an die letzte sichere Stelle statt immer in die Inselmitte
+function respawnAt(x, z) { clearDrag(); state.pos.set(x, z); state.vel.set(0, 0); state.prevVel.set(0, 0); state.y = groundHeight(x, z); state.vy = 0; state.grounded = true; state.invincibleUntil = performance.now() + 1500; player.position.set(x, state.y, z); player.rotation.set(0, 0, 0); rig.rotation.set(0, 0, 0); }
 
 // --- Exit-Rakete wie im Original: das Stück Boden unter Knopf & Figur reißt sich los
 // und schießt beschleunigend in den Himmel, dann Überblendung zum nächsten Level ---
@@ -55629,21 +55686,42 @@ function startGame() {
   if (state.buyShield) { state.shield = true; state.buyShield = false; }
   if (state.buyLife) { state.lives = 4; state.buyLife = false; }
   if (state.buyDoubler) { state.runCoinMult = 2; state.buyDoubler = false; showToast('💰 Münz-Verdoppler aktiv!'); }
-  if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open');
+  if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open'); resultsEl.classList.remove('open');
   startQuest();
   state.running = true; startLevel(1);
+}
+// Beta: richtiger Ergebnis-Screen statt Toast — mit Nochmal-Button fuer den schnellen Retry
+const resultsEl = document.getElementById('results');
+function showResults(res) {
+  document.getElementById('resTitle').textContent = res.won ? '🏆 Durchgespielt!' : (res.quit ? '🏁 Run beendet' : '💧 Game Over');
+  document.getElementById('resNewBest').classList.toggle('hidden', !res.newBest);
+  document.getElementById('resGrid').innerHTML =
+    '<span>🏆 Punkte</span><b>' + res.score + '</b>' +
+    '<span>' + charById(state.character).favIco + ' Eingesammelt</span><b>' + res.stars + '</b>' +
+    '<span>🪙 Münzen</span><b>+' + res.coins + '</b>' +
+    '<span>🔥 Max-Combo</span><b>×' + res.comboMax + '</b>' +
+    '<span>⛏ Insel erreicht</span><b>' + res.level + '</b>' +
+    '<span>⏱ Zeit</span><b>' + res.secs + 's</b>';
+  resultsEl.classList.add('open');
+}
+document.getElementById('resRetryBtn').addEventListener('click', () => { resultsEl.classList.remove('open'); startGame(); });
+document.getElementById('resHubBtn').addEventListener('click', () => { resultsEl.classList.remove('open'); updateHubPlate(); });
+function captureRun(won, quit) {
+  return {
+    won, quit, score: state.score, stars: state.runStars, coins: state.runCoins,
+    comboMax: state.comboMax, level: state.level,
+    secs: Math.max(0, Math.round((performance.now() - state.runStart) / 1000)),
+    newBest: !quit && state.score > 0 && state.score >= state.hiscore,
+  };
 }
 function endGame(won) {
   state.running = false; state.paused = false; state.transitioning = false;
   if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open');
   won ? Sound.win() : Sound.lose();
-  const secs = Math.max(0, Math.round((performance.now() - state.runStart) / 1000));
-  const msg = (won ? '🏆 Durchgespielt! ' : '💧 Game Over — ') +
-    `${state.score} Punkte · ⭐${state.runStars} · 🪙${state.runCoins} · ${secs}s`;
+  const res = captureRun(won, false);
   saveProgress();
-  // Brief flash then return to hub world with the run summary as a toast
-  showFlash(won ? 0x44ffd0 : 0xff2244, 0.55, 0.4);
-  setTimeout(() => { enterHubMode(); showToast(msg); }, 400);
+  showFlash(won ? 0x44ffd0 : 0xff2244, 0.4, 0.4);
+  setTimeout(() => { enterHubMode(); showResults(res); }, 400);
 }
 // Intro nur beim allerersten Start; danach übernimmt der Hub das Menü komplett
 startBtn.addEventListener('click', () => { localStorage.setItem('ls_intro', '1'); overlay.classList.add('hidden'); startGame(); });
@@ -55652,10 +55730,10 @@ startBtn.addEventListener('click', () => { localStorage.setItem('ls_intro', '1')
 //  Spiel-Logik
 // ===================================================================
 const clock = new THREE.Clock();
-function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.55; punchFOV(3); state.fever = false; buzz(45); state.landSquash = 1.6; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawn(); }   // landSquash 1.6 = kurz comichaft plattgedrückt
+function hurt(reason) { state.lives--; updateHUD(); state.shake = 0.55; punchFOV(3); state.fever = false; buzz(45); state.landSquash = 1.6; showFlash(0xff2222, 0.55, 0.4); burst(player.position.x, state.y + 1.2, player.position.z, 0xff4444, 18, 8); if (state.lives <= 0) { endGame(false); return; } Sound.hurt(); showToast(reason + ' — noch ' + state.lives + ' ❤️'); popBadge(livesBadge); respawnAt(state.safeX, state.safeZ); }   // landSquash 1.6 = kurz comichaft plattgedrückt
 const COMBO_TIERS = { 5: ['Combo!', 0xffcc33], 8: ['On Fire! 🔥', 0xff8a2a], 12: ['Unstoppable!', 0xff5a2a], 16: ['Blazing!', 0xff3a6a], 20: ['LEGENDARY! ⚡', 0xffe23a] };
 function bumpCombo() {
-  state.comboTimer = 2.5;
+  state.comboTimer = 3.0;
   const prev = state.combo;
   state.combo = Math.min(20, state.combo + 1);
   state.comboMax = Math.max(state.comboMax, state.combo);
@@ -55708,8 +55786,9 @@ function step(dt) {
 
   // --- Charakter-Fähigkeiten (Trait beeinflusst Physik/Sammeln) ---
   const tr = state.trait;
-  const maxSpeed = tr === 'speed' ? MAX_SPEED * 1.28 : MAX_SPEED;
-  const friction = tr === 'speed' ? FRICTION * 0.7 : FRICTION;
+  const icy = curTheme && curTheme.style === 'snow';           // Schnee-Welt: spuerbar rutschiger
+  const maxSpeed = (tr === 'speed' ? MAX_SPEED * 1.28 : MAX_SPEED) * (icy ? 1.06 : 1);
+  const friction = (tr === 'speed' ? FRICTION * 0.7 : FRICTION) * (icy ? 0.45 : 1);
   const grav = tr === 'float' ? GRAV * 0.72 : GRAV;
   const dashing = performance.now() < state.dashUntil;
 
@@ -55749,6 +55828,14 @@ function step(dt) {
     if (!(gmag < 0.08 && !inputActive && state.vel.lengthSq() < 2.25)) {
       const sc = gmag > 1.6 ? 1.6 / gmag : 1;   // an Terrassenwänden gedeckelt — kein Katapult-Jitter
       state.vel.x -= SLOPE_K * g.x * sc * dt; state.vel.y -= SLOPE_K * g.z * sc * dt;
+    }
+  }
+  // Checkpoint: alle 0.4s die letzte SICHERE Bodenposition merken (flach, kein Loch, keine Bodengefahr)
+  if (state.grounded && preSurf.type === 'ground' && performance.now() - state.safeT > 400) {
+    const sg = groundGrad(state.pos.x, state.pos.y);
+    if (Math.hypot(sg.x, sg.z) < 0.25 && !inHole(state.pos.x, state.pos.y) &&
+        !floorHaz.some(h => Math.hypot(state.pos.x - h.x, state.pos.y - h.z) < h.r + 1.2)) {
+      state.safeX = state.pos.x; state.safeZ = state.pos.y; state.safeT = performance.now();
     }
   }
   if (!inputActive && state.grounded) {
@@ -55820,14 +55907,14 @@ function step(dt) {
       // die man sonst in kleinen Frame-Schritten hochschummeln könnte):
       const dy = surf.y - state.y;
       const gw = groundGrad(state.pos.x, state.pos.y), steepW = Math.hypot(gw.x, gw.z);
-      if (dy > 0.05 && (steepW > 1.3 || dy > 0.55)) {
+      if (dy > 0.05 && (steepW > 1.0 || dy > 0.4)) {
         // Wand bergauf: NICHT hochschnappen — Position zurück und Geschwindigkeit auf die
         // Wand-Tangente projizieren -> sauberes Entlanggleiten an der Klippenbasis
         state.pos.set(px0, pz0);
         const gl = Math.hypot(gw.x, gw.z) || 1, wnx = gw.x / gl, wnz = gw.z / gl;
         const wdot = state.vel.x * wnx + state.vel.y * wnz;
         if (wdot > 0) { state.vel.x -= wdot * wnx; state.vel.y -= wdot * wnz; }
-      } else if (dy < -0.55 || (dy < -0.05 && steepW > 1.3)) {
+      } else if (dy < -0.55 || (dy < -0.05 && steepW > 1.0)) {
         // Kante einer höheren Terrasse: weich herunterfallen statt an der Wand zu kleben
         state.grounded = false; state.vy = 0; state.coyoteUntil = performance.now() + 90;
       } else state.y = surf.y;
@@ -56025,8 +56112,10 @@ function step(dt) {
     const pu = powerups[i];
     if (Math.hypot(state.pos.x - pu.position.x, state.pos.y - pu.position.z) < 1.3 && Math.abs(state.y - pu.position.y) < 2) {
       islandGroup.remove(pu); startFly(pu); powerups.splice(i, 1); Sound.power(); buzz(14);
-      const col = pu.userData.kind === 'shield' ? 0x33c1ff : 0xff5fa8;
-      if (pu.userData.kind === 'shield') { state.shield = true; showToast('🛡 Schild aktiv!'); } else { state.magnetUntil = performance.now() + 8000; showToast('🧲 Magnet für 8s!'); }
+      const col = pu.userData.kind === 'shield' ? 0x33c1ff : (pu.userData.kind === 'heart' ? 0xff4060 : 0xff5fa8);
+      if (pu.userData.kind === 'shield') { state.shield = true; showToast('🛡 Schild aktiv!'); }
+      else if (pu.userData.kind === 'heart') { state.lives = Math.min(4, state.lives + 1); updateHUD(); showToast('❤️ Leben aufgefüllt!'); popBadge(livesBadge); }
+      else { state.magnetUntil = performance.now() + 8000; showToast('🧲 Magnet für 8s!'); }
       burst(pu.position.x, pu.position.y + 1.2, pu.position.z, col, 16, 7); showFlash(col, 0.14);
     }
   }
@@ -56250,7 +56339,7 @@ function animate() {
   }
 
   // --- Combo bar + fever glow + dash cooldown HUD ---
-  if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 2.5) + ')'; comboFillEl.style.background = state.fever ? 'linear-gradient(90deg,#ff5a2a,#ffe23a)' : 'linear-gradient(90deg,#ff9d45,#ffd23f)'; }
+  if (state.combo > 1) { comboBarEl.classList.add('vis'); comboFillEl.style.transform = 'scaleX(' + Math.max(0, state.comboTimer / 3.0) + ')'; comboFillEl.style.background = state.fever ? 'linear-gradient(90deg,#ff5a2a,#ffe23a)' : 'linear-gradient(90deg,#ff9d45,#ffd23f)'; }
   else comboBarEl.classList.remove('vis');
   if (feverGlowEl) feverGlowEl.classList.toggle('on', state.fever && state.running);
   const cdFrac = THREE.MathUtils.clamp((state.dashReadyAt - performance.now()) / DASH_CD, 0, 1);
@@ -56291,6 +56380,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { clo
 
 applyCharacter();
 reflectSettings();
+applyQuality();
+Sound.setVolume(settings.vol);
 enterHubMode();
 if (!localStorage.getItem('ls_intro')) { overlay.classList.remove('hidden'); document.getElementById('hubOverlay').style.display = 'none'; }   // Erst-Start: kurze Anleitung statt Hub-Titel
 updateHUD();
