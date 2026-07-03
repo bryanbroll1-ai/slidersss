@@ -8,8 +8,14 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;overflow:hidden;height:100%;background:#111820;touch-action:none;font-family:'Segoe UI',system-ui,Arial,sans-serif;}
 
-  /* ── HUD ── */
-  #hud{position:fixed;top:0;left:0;right:0;padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:6px;pointer-events:none;user-select:none;z-index:10;flex-wrap:wrap;}
+  /* ── HUD — Vorlage-Stil: großes Zähler-Schild oben links, Rest schlank rechts ── */
+  #swagSign{position:fixed;top:10px;left:10px;z-index:10;pointer-events:none;user-select:none;text-align:center;padding:8px 18px 7px;border-radius:16px;background:#3a7ad8;border:3px solid rgba(255,255,255,0.85);box-shadow:0 4px 16px rgba(0,0,0,0.35);transform:rotate(-2deg);}
+  #swagCnt{font-size:26px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.4);line-height:1.05;}
+  #swagBest{font-size:12.5px;font-weight:800;color:rgba(255,255,255,0.92);margin-top:1px;}
+  #swagSign.pop{animation:badgePop .18s ease-out;}
+  #hud{position:fixed;top:10px;right:64px;display:flex;justify-content:flex-end;align-items:flex-start;gap:6px;pointer-events:none;user-select:none;z-index:10;flex-wrap:wrap;max-width:60vw;}
+  #questBar{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none;background:rgba(64,48,140,0.92);border:2px solid rgba(255,255,255,0.25);color:#fff;font-weight:800;font-size:14px;padding:8px 20px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.4);white-space:nowrap;transition:background .3s;}
+  #questBar.done{background:rgba(40,150,70,0.95);}
   .badge{background:rgba(0,0,0,0.68);border-radius:22px;padding:7px 14px;font-size:15px;font-weight:900;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.45);white-space:nowrap;letter-spacing:0.01em;transition:transform .08s;}
   .badge.pop{animation:badgePop .18s ease-out;}
   @keyframes badgePop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
@@ -82,6 +88,10 @@
   #hubOverlay{position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:clamp(16px,4vh,36px);}
   #hubTitle{font-size:clamp(26px,6vw,48px);font-weight:900;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.8),0 0 40px rgba(255,210,60,0.6);letter-spacing:-0.5px;pointer-events:none;user-select:none;}
   #hubHint{margin-top:8px;font-size:clamp(13px,2vw,16px);color:rgba(255,255,255,0.85);text-shadow:0 2px 8px rgba(0,0,0,0.7);pointer-events:none;user-select:none;font-weight:700;}
+  /* Namensschild wie in der Vorlage: graue Steinplakette unter dem Charakter-Podest */
+  #hubPlate{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#8d94a2,#6e7482);border:3px solid rgba(255,255,255,0.5);border-radius:14px;padding:8px 26px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,0.4);pointer-events:none;user-select:none;}
+  #plateName{font-size:20px;font-weight:900;color:#fff;text-shadow:0 2px 5px rgba(0,0,0,0.45);}
+  #plateSub{font-size:12.5px;font-weight:800;color:rgba(255,255,255,0.92);margin-top:2px;}
 
   /* ── Preisautomat (Lootbox-Animation) ── */
   #prizePop{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(6,10,20,0.72);backdrop-filter:blur(6px);}
@@ -120,7 +130,7 @@
   #dashBtn:active{transform:scale(0.9);}
   #dashBtn.ready{border-color:#7fe0ff;box-shadow:0 0 18px rgba(80,200,255,0.6),0 4px 16px rgba(0,0,0,0.45);}
   #dashBtn .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(120,200,255,0.28);transform-origin:bottom;}
-  #pauseBtn{bottom:16px;right:86px;}
+  #pauseBtn{top:12px;right:12px;}   /* Pause oben rechts wie in der Vorlage */
 
   /* ── Pause & Settings overlays ── */
   #pause,#settings{position:fixed;inset:0;z-index:26;background:rgba(6,12,22,0.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
@@ -142,15 +152,16 @@
 </style>
 </head>
 <body>
+<div id="swagSign" style="display:none"><div id="swagCnt">0/0</div><div id="swagBest">Best: 0</div></div>
 <div id="hud" style="display:none">
-  <div class="badge" id="scoreBadge">🏆 0</div>
-  <div class="badge" id="coinsBadge" style="color:#caa11a">🪙 0</div>
-  <div class="badge" id="comboBadge">×1</div>
-  <div class="badge" id="starBadge">⭐ 0/0</div>
-  <div class="badge" id="levelBadge">Lvl 1</div>
-  <div class="badge" id="puzzleBadge" style="color:#7a3fae; display:none">🔢 0/0</div>
   <div class="badge" id="livesBadge">❤️❤️❤️</div>
+  <div class="badge" id="coinsBadge" style="color:#ffd23f">🪙 0</div>
+  <div class="badge" id="levelBadge">Lvl 1</div>
+  <div class="badge" id="scoreBadge">🏆 0</div>
+  <div class="badge" id="comboBadge">×1</div>
+  <div class="badge" id="puzzleBadge" style="color:#ce93d8; display:none">🔢 0/0</div>
 </div>
+<div id="questBar" class="hidden"><span id="questTxt"></span></div>
 <button class="badge ctrlBtn" id="soundBtn">🔊</button>
 <button class="badge ctrlBtn" id="pauseBtn" style="display:none">⏸</button>
 <button id="dashBtn" style="display:none"><span class="cd"></span>💨</button>
@@ -193,7 +204,8 @@
 </div>
 <div id="hubOverlay" style="display:none">
   <div id="hubTitle">🏔️ Land Sliders 3D</div>
-  <div id="hubHint">Gleite zu einer Plattform</div>
+  <div id="hubHint">Gleite zu einer Disc</div>
+  <div id="hubPlate"><div id="plateName">🐶 Wuffel</div><div id="plateSub">🪙 0 · 🏆 0</div></div>
 </div>
 <div id="prizePop"><div id="prizeCapsule">🎁</div><div id="prizeName"></div></div>
 <div id="feverGlow"></div>
@@ -53348,13 +53360,15 @@ scene.add(cloudGroup);
 // ===================================================================
 //  Themes
 // ===================================================================
+// Farbwelten nach den Original-Screenshots: sattgrüne Plateaus, LILA Klippen & Lavendel-Zäune,
+// Canyon in Orange-Rot — dirt/cliff färben die Terrassenwände, fence die Holzzäune.
 const THEMES = [
-  { name: 'Wiese',  style: 'meadow',  sky: 0x6dd8f8, sea: 0x1a80c8, fog: 0x88e4ff, ground: 0x3dcc52, low: 0x2aa83c, dirt: 0x6a4428, deco: 0x28aa3a, rock: 0x7888c0, amb: 0xc8eeff, path: 0xf0b840, fence: 0x4466cc },
-  { name: 'Wüste',  style: 'desert',  sky: 0xf8d870, sea: 0x2a80cc, fog: 0xfae898, ground: 0xf0c040, low: 0xd49828, dirt: 0xaa6e28, deco: 0x38ae58, rock: 0xd8aa70, amb: 0xffecc0, path: 0xe29040, fence: 0x886030 },
-  { name: 'Schnee', style: 'snow',    sky: 0xbce8ff, sea: 0x3870b8, fog: 0xd8f2ff, ground: 0xeef8ff, low: 0xaacce8, dirt: 0x7888a8, deco: 0x387a48, rock: 0xaabcd4, amb: 0xe4f4ff, path: 0xd8c8b0, fence: 0x88aacc },
-  { name: 'Vulkan', style: 'volcano', sky: 0x281820, sea: 0xcc3210, fog: 0x361e20, ground: 0x4c3830, low: 0x2c2018, dirt: 0x221408, deco: 0x782a1c, rock: 0x2c2020, amb: 0xff7840, path: 0xa83818, fence: 0x583020 },
-  { name: 'Candy',  style: 'candy',   sky: 0xff98d8, sea: 0x9050d0, fog: 0xffbce8, ground: 0xff80be, low: 0xe05aa8, dirt: 0xc04890, deco: 0xff4896, rock: 0xd880c8, amb: 0xffd0f0, path: 0xffe068, fence: 0xdd78ff },
-  { name: 'Himmel', style: 'sky',     sky: 0x98e4ff, sea: 0x3898d8, fog: 0xbcf0ff, ground: 0x62ccf8, low: 0x40a8e0, dirt: 0x6090c0, deco: 0x48c0e0, rock: 0x80c8e8, amb: 0xd8f4ff, path: 0xfff0a8, fence: 0x78ccff },
+  { name: 'Wiese',  style: 'meadow',  sky: 0x6dd8f8, sea: 0x1a80c8, fog: 0x88e4ff, ground: 0x4fd45e, low: 0x38b448, dirt: 0x5e5494, cliff: 0x6a5fa8, deco: 0x28aa3a, rock: 0x8a80c8, amb: 0xc8eeff, path: 0xf0b840, fence: 0xb2a4e6 },
+  { name: 'Canyon', style: 'desert',  sky: 0xf8d870, sea: 0x2a80cc, fog: 0xfae898, ground: 0xf0c040, low: 0xd49828, dirt: 0xb45c24, cliff: 0xc2662a, deco: 0x38ae58, rock: 0xd8aa70, amb: 0xffecc0, path: 0xe29040, fence: 0xb8a2d8 },
+  { name: 'Schnee', style: 'snow',    sky: 0xbce8ff, sea: 0x3870b8, fog: 0xd8f2ff, ground: 0xeef8ff, low: 0xc4d8f0, dirt: 0x8088c4, cliff: 0x8a8fc8, deco: 0x387a48, rock: 0xaabcd4, amb: 0xe4f4ff, path: 0xd8c8b0, fence: 0xc4baee },
+  { name: 'Vulkan', style: 'volcano', sky: 0x281820, sea: 0xcc3210, fog: 0x361e20, ground: 0x4c3830, low: 0x3a2a22, dirt: 0x2a1a12, cliff: 0x38241c, deco: 0x782a1c, rock: 0x2c2020, amb: 0xff7840, path: 0xa83818, fence: 0x6a4838 },
+  { name: 'Candy',  style: 'candy',   sky: 0xff98d8, sea: 0x9050d0, fog: 0xffbce8, ground: 0xff8ac4, low: 0xe868ae, dirt: 0x9a52b8, cliff: 0xa85cc4, deco: 0xff4896, rock: 0xd880c8, amb: 0xffd0f0, path: 0xffe068, fence: 0xeeaaf4 },
+  { name: 'Himmel', style: 'sky',     sky: 0x98e4ff, sea: 0x3898d8, fog: 0xbcf0ff, ground: 0x6fd2f8, low: 0x4cb0e4, dirt: 0x7a90cc, cliff: 0x8498d4, deco: 0x48c0e0, rock: 0x88ccec, amb: 0xd8f4ff, path: 0xfff0a8, fence: 0xbcd4f8 },
 ];
 function themeFor(level) { return THEMES[(level - 1) % THEMES.length]; }
 function applyTheme(t) {
@@ -53409,13 +53423,23 @@ let goal = null;
 const occupied = [];              // belegte Kreise -> verhindert Überlappung
 const avoid = [];                 // Zonen, die Spawns komplett meiden
 
+// Land-Sliders-Look: statt weicher Hügel FLACHE PLATEAU-TERRASSEN mit steilen Klippen —
+// die weiche Basis wird auf feste Stufen quantisiert, mit schmaler Kante als Übergang.
+const TIER_STEP = 1.7;
 function groundHeight(x, z) {
   let h = 0;
   for (const hl of hills) {
     const d = Math.hypot(x - hl.x, z - hl.z);
     if (d < hl.r) { const f = 0.5 + 0.5 * Math.cos(Math.PI * d / hl.r); h += hl.h * f; }
   }
-  return h;
+  // Quantisierung mit knackiger Kante: innerhalb ±0.12·step um die Stufe wird interpoliert,
+  // damit die Klippenwand im Mesh sauber (nicht z-kämpfend) steht
+  const k = h / TIER_STEP, base = Math.floor(k + 0.5), frac = k - base + 0.5;   // frac ∈ [0,1)
+  const edge = 0.2;
+  let q;
+  if (frac < edge) q = base - 1 + frac / edge;        // steile, aber definierte Wand
+  else q = base;
+  return q * TIER_STEP;
 }
 function groundGrad(x, z) {
   const e = 0.6;
@@ -53763,8 +53787,10 @@ function makeLevel(level) {
     occupied.pop(); // Bodendeko blockiert nichts
   }
 
-  // --- Lava-Tümpel (nur Vulkan, Bodengefahr) ---
+  // --- Bodengefahren: Lava (Vulkan), Wassertümpel (grüne Welten), Stacheln (ab L2) ---
   if (t.style === 'volcano') for (let i = 0; i < 2 + rint(0, 2); i++) addLavaPool(t);
+  if (t.style === 'meadow' || t.style === 'snow' || t.style === 'candy') for (let i = 0; i < 1 + rint(0, 2); i++) addWaterPond(t);
+  if (level >= 2) for (let i = 0; i < Math.min(3, 1 + Math.floor(level / 3)); i++) addSpikes(t);
 
   // --- Ambient-Leben: Schmetterlinge & Tumbleweeds (rein dekorativ) ---
   if (t.style === 'meadow' || t.style === 'candy' || t.style === 'sky') for (let i = 0; i < 3 + rint(0, 2); i++) addButterfly(t);
@@ -53796,22 +53822,25 @@ function makeLevel(level) {
   for (let i = 0; i < chasers; i++) spawnEnemy('chaser', Math.min(level, 10), t);
   for (let i = 0; i < pushers; i++) spawnEnemy('pusher', Math.min(level, 10), t);
 
-  // --- Lieblings-Sammelobjekte (charakterspezifisch, bevorzugt auf dem Sandpfad) ---
+  // --- Lieblings-Sammelobjekte: liegen FLACH am Boden (wie in der Vorlage) und NUR auf der
+  // Basis-Terrasse, damit Terrassen nie ein Pflicht-Objekt unerreichbar machen ---
   const charId = state ? state.character : 'wuffel';
   const starCount = 6 + level * 2 + rint(0, 3);
   for (let i = 0; i < starCount; i++) {
-    const p = freeSpot(0.92, 0.8, { preferPath: true });
+    let p, tries = 0;
+    do { if (tries) occupied.pop(); p = freeSpot(0.92, 0.8, { preferPath: true }); tries++; }
+    while (tries < 8 && Math.abs(groundHeight(p.x, p.z)) > 0.9);
     const star = makeFavItem(charId);
-    star.position.set(p.x, groundHeight(p.x, p.z) + 1.1, p.z); star.castShadow = true; star.userData.baseY = star.position.y;
+    star.position.set(p.x, groundHeight(p.x, p.z) + 0.55, p.z); star.castShadow = true; star.userData.baseY = star.position.y;
     islandGroup.add(star); stars.push(star);
   }
 
-  // --- Themen-Münzen/Items (bevorzugt auf dem Sandpfad) ---
+  // --- Themen-Münzen/Items (bevorzugt auf dem Sandpfad, ebenfalls bodennah) ---
   const coinCount = 6 + level * 2 + rint(0, 3);
   for (let i = 0; i < coinCount; i++) {
     const p = freeSpot(0.94, 0.7, { preferPath: true });
     const coin = makeCoinMesh(t);
-    coin.position.set(p.x, groundHeight(p.x, p.z) + 1.0, p.z); coin.userData.baseY = coin.position.y;
+    coin.position.set(p.x, groundHeight(p.x, p.z) + 0.5, p.z); coin.userData.baseY = coin.position.y;
     islandGroup.add(coin); coins.push(coin);
   }
 
@@ -53834,17 +53863,24 @@ function makeLevel(level) {
 
 function buildTerrain(t) {
   const rings = Math.round(THREE.MathUtils.clamp(islandR * 0.95, 22, 36)), segs = Math.round(THREE.MathUtils.clamp(islandR * 2.2, 56, 104)), pos = [], idx = [], colors = [];
-  const cTop = new THREE.Color(t.ground), cLow = new THREE.Color(t.low), rowStart = [];
+  const cTop = new THREE.Color(t.ground), cLow = new THREE.Color(t.low), cCliff = new THREE.Color(t.cliff || t.dirt), rowStart = [];
   for (let i = 0; i <= rings; i++) {
     rowStart.push(pos.length / 3);
     const frac = i / rings;
     for (let j = 0; j <= segs; j++) {
       const a = (j / segs) * Math.PI * 2, r = edgeRadiusAt(a) * frac, x = Math.cos(a) * r, z = Math.sin(a) * r, y = groundHeight(x, z);
       pos.push(x, y, z);
-      const cHill = cTop.clone().lerp(cLow, THREE.MathUtils.clamp(0.5 - y * 0.12, 0, 1));
-      const dp = pathPts.length > 1 ? distToPath(x, z) : 999;
-      const pb = THREE.MathUtils.clamp(1 - (dp - 1.6) / 1.4, 0, 1);
-      const c = pb > 0 ? cHill.clone().lerp(new THREE.Color(t.path || 0xe8a040), pb) : cHill;
+      // Terrassenwände: steile Stellen bekommen die LILA Klippenfarbe (Signature-Look der Vorlage)
+      const gg = groundGrad(x, z), steep = Math.hypot(gg.x, gg.z);
+      let c;
+      if (steep > 1.6) c = cCliff.clone();                                     // echte Terrassenwand
+      else {
+        const cHill = cTop.clone().lerp(cLow, THREE.MathUtils.clamp(0.5 - y * 0.12, 0, 1));
+        const dp = pathPts.length > 1 ? distToPath(x, z) : 999;
+        const pb = THREE.MathUtils.clamp(1 - (dp - 1.6) / 1.4, 0, 1);
+        c = pb > 0 ? cHill.clone().lerp(new THREE.Color(t.path || 0xe8a040), pb) : cHill;
+        if (steep > 1.0) c.lerp(cCliff, THREE.MathUtils.clamp((steep - 1.0) / 0.6, 0, 1) * 0.9);   // schmaler Kanten-Saum
+      }
       colors.push(c.r, c.g, c.b);
     }
   }
@@ -53875,6 +53911,17 @@ function buildTerrain(t) {
   mesh.receiveShadow = true; islandGroup.add(mesh);
   const dirt = new THREE.Mesh(new THREE.CylinderGeometry(islandR * 0.62, islandR * 0.38, 9, 14), new THREE.MeshLambertMaterial({ color: t.dirt, flatShading: true }));
   dirt.position.y = -10; islandGroup.add(dirt);
+  // Wolkenkranz unter der Inselkante — die Insel schwebt sichtbar über einem Wolkenmeer (wie in der Vorlage)
+  const puffMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true, transparent: true, opacity: 0.92 });
+  const puffN = 12;
+  for (let i = 0; i < puffN; i++) {
+    const a = (i / puffN) * Math.PI * 2 + Math.random() * 0.3;
+    const er = edgeRadiusAt(a) * (0.82 + Math.random() * 0.12);
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(2.6 + Math.random() * 2.2, 7, 6), puffMat);
+    puff.scale.y = 0.55;
+    puff.position.set(Math.cos(a) * er, -7.5 - Math.random() * 2, Math.sin(a) * er);
+    islandGroup.add(puff);
+  }
 }
 
 function buildBridge(t, subIdx = 0) {
@@ -53997,11 +54044,11 @@ function spawnOnChunk(sc, type, t) {
     const gy = groundHeight(x, z);
     if (type === 'star') {
       const star = makeFavItem(state ? state.character : 'wuffel');
-      star.position.set(x, gy + 1.1, z); star.userData.baseY = star.position.y;
+      star.position.set(x, gy + 0.55, z); star.userData.baseY = star.position.y;
       islandGroup.add(star); stars.push(star); occupied.push({ x, z, r: 0.9 });
     } else if (type === 'coin') {
       const coin = makeCoinMesh(t);
-      coin.position.set(x, gy + 1.0, z); coin.userData.baseY = coin.position.y;
+      coin.position.set(x, gy + 0.5, z); coin.userData.baseY = coin.position.y;
       islandGroup.add(coin); coins.push(coin); occupied.push({ x, z, r: 0.8 });
     } else if (type === 'tree') {
       const tree = new THREE.Group();
@@ -54289,7 +54336,35 @@ function addLavaPool(t) {
   pool.rotation.x = -Math.PI / 2; pool.position.set(p.x, gy + 0.06, p.z); islandGroup.add(pool);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.16, 6, 24), new THREE.MeshLambertMaterial({ color: 0x331008, emissive: 0xaa2200, emissiveIntensity: 0.5, flatShading: true }));
   rim.rotation.x = -Math.PI / 2; rim.position.set(p.x, gy + 0.08, p.z); islandGroup.add(rim);
-  floorHaz.push({ x: p.x, z: p.z, r, mesh: pool });
+  floorHaz.push({ kind: 'lava', x: p.x, z: p.z, r, mesh: pool, msg: '🌋 Lava!' });
+}
+
+// Eingelassener Wassertümpel wie in den Screenshots: flache hellblaue Facetten-Fläche mit Ufersaum
+function addWaterPond(t) {
+  const r = 1.8 + Math.random() * 1.4;
+  const p = freeSpot(0.78, r + 1.3, { flat: true, offPath: true });
+  const gy = groundHeight(p.x, p.z);
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(r, 8), new THREE.MeshLambertMaterial({ color: 0x9fdcf4, emissive: 0x2a6a8a, emissiveIntensity: 0.12, flatShading: true }));
+  pool.rotation.x = -Math.PI / 2; pool.rotation.z = Math.random() * Math.PI; pool.position.set(p.x, gy + 0.05, p.z); islandGroup.add(pool);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(r + 0.05, 0.14, 5, 8), new THREE.MeshLambertMaterial({ color: t.low, flatShading: true }));
+  rim.rotation.x = -Math.PI / 2; rim.rotation.z = pool.rotation.z; rim.position.set(p.x, gy + 0.07, p.z); islandGroup.add(rim);
+  floorHaz.push({ kind: 'water', x: p.x, z: p.z, r, mesh: pool, msg: '💧 Ins Wasser geplumpst!' });
+}
+
+// Stachelfalle wie in Screenshot 3: braunes Felsspitzen-Büschel, Berührung tut weh
+function addSpikes(t) {
+  const p = freeSpot(0.82, 1.6, { flat: true, offPath: true });
+  const gy = groundHeight(p.x, p.z), g = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color: 0x9a5a2e, flatShading: true });
+  const n = 6 + rint(0, 3);
+  for (let i = 0; i < n; i++) {
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.24 + Math.random() * 0.14, 0.9 + Math.random() * 0.7, 5), mat);
+    sp.position.set((Math.random() - 0.5) * 1.6, 0.1, (Math.random() - 0.5) * 1.6);
+    sp.rotation.set((Math.random() - 0.5) * 0.7, Math.random() * Math.PI, (Math.random() - 0.5) * 0.7);
+    sp.castShadow = true; g.add(sp);
+  }
+  g.position.set(p.x, gy, p.z); islandGroup.add(g);
+  floorHaz.push({ kind: 'spikes', x: p.x, z: p.z, r: 1.15, mesh: null, msg: '🌵 Stacheln!' });
 }
 
 // --- Zahlen-Rätsel-Knopf -----------------------------------------------------
@@ -54370,30 +54445,48 @@ function enemyPalette(t) {
 function spawnEnemy(kind, level, t) {
   const e = new THREE.Group();
   const pal = enemyPalette(t);
-  const color = kind === 'pusher' ? pal.pusher : pal.chaser;
-  const bodyGeo = kind === 'pusher' ? new THREE.BoxGeometry(1.3, 1.2, 1.3) : new THREE.SphereGeometry(0.7, 12, 10);
-  const body = new THREE.Mesh(bodyGeo, new THREE.MeshLambertMaterial({ color, emissive: pal.emissive, flatShading: true })); body.position.y = kind === 'pusher' ? 0.9 : 0.8; body.castShadow = true;
+  // Wie die Bären im Original: die Hälfte der Jäger schläft — und die sind RIESIGE Klotz-Bären
+  const sleeping = kind === 'chaser' && Math.random() < 0.5;
+  let body, baseY, rad, hitR;
   const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff }), pupMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-  const eyeY = kind === 'pusher' ? 1.2 : 1.05, eyeZ = kind === 'pusher' ? 0.66 : 0.55;
-  for (const sx of [-1, 1]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 9, 8), eyeMat); eye.position.set(sx * 0.28, eyeY, eyeZ);
-    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), pupMat); pup.position.set(sx * 0.28, eyeY, eyeZ + 0.13);
-    e.add(eye, pup);
-    // wütende Braue über jedem Auge — liest sich sofort als Gegner
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.07, 0.08), pupMat);
-    brow.position.set(sx * 0.28, eyeY + 0.2, eyeZ + 0.04); brow.rotation.z = -sx * 0.45; e.add(brow);
+  if (sleeping) {
+    // Großer kastiger Braunbär (Screenshot-Vorlage): Klotz-Körper, Klotz-Kopf, Schnauze, runde Ohren
+    const furMat = new THREE.MeshLambertMaterial({ color: 0x8a5a34, flatShading: true });
+    const furDark = new THREE.MeshLambertMaterial({ color: 0x6e4526, flatShading: true });
+    body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.6, 2.4), furMat); body.position.y = 1.0; body.castShadow = true; e.add(body);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.0, 0.95), furMat); head.position.set(0, 1.45, 1.45); head.castShadow = true; e.add(head);
+    const snout = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.4), new THREE.MeshLambertMaterial({ color: 0xc89a6a, flatShading: true })); snout.position.set(0, 1.22, 1.98); e.add(snout);
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.1), pupMat); nose.position.set(0, 1.32, 2.2); e.add(nose);
+    for (const sx of [-1, 1]) {
+      const ear = new THREE.Mesh(new THREE.SphereGeometry(0.24, 7, 6), furDark); ear.position.set(sx * 0.5, 2.0, 1.25); e.add(ear);
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.06, 0.06), pupMat); lid.position.set(sx * 0.3, 1.55, 1.94); e.add(lid);   // geschlossene Augen
+      const paw = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.6), furDark); paw.position.set(sx * 0.75, 0.2, 0.9); e.add(paw);
+    }
+    baseY = 1.0; rad = 1.35; hitR = 1.9;
+  } else {
+    const color = kind === 'pusher' ? pal.pusher : pal.chaser;
+    const bodyGeo = kind === 'pusher' ? new THREE.BoxGeometry(1.3, 1.2, 1.3) : new THREE.SphereGeometry(0.7, 12, 10);
+    body = new THREE.Mesh(bodyGeo, new THREE.MeshLambertMaterial({ color, emissive: pal.emissive, flatShading: true })); body.position.y = kind === 'pusher' ? 0.9 : 0.8; body.castShadow = true;
+    const eyeY = kind === 'pusher' ? 1.2 : 1.05, eyeZ = kind === 'pusher' ? 0.66 : 0.55;
+    for (const sx of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18, 9, 8), eyeMat); eye.position.set(sx * 0.28, eyeY, eyeZ);
+      const pup = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 7), pupMat); pup.position.set(sx * 0.28, eyeY, eyeZ + 0.13);
+      e.add(eye, pup);
+      // wütende Braue über jedem Auge — liest sich sofort als Gegner
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.07, 0.08), pupMat);
+      brow.position.set(sx * 0.28, eyeY + 0.2, eyeZ + 0.04); brow.rotation.z = -sx * 0.45; e.add(brow);
+    }
+    e.add(body);
+    if (kind === 'pusher') for (const sx of [-1, 1]) { const fist = new THREE.Mesh(new THREE.SphereGeometry(0.34, 9, 8), new THREE.MeshLambertMaterial({ color: pal.accent })); fist.position.set(sx * 0.55, 0.8, 0.8); e.add(fist); }
+    else for (const [lx, lz] of [[-0.3, 0.2], [0.3, 0.2], [-0.3, -0.2], [0.3, -0.2]]) { const foot = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), new THREE.MeshLambertMaterial({ color: pal.accent, flatShading: true })); foot.scale.set(1, 0.6, 1.1); foot.position.set(lx, 0.12, lz); e.add(foot); }
+    baseY = kind === 'pusher' ? 0.9 : 0.8; rad = kind === 'pusher' ? 0.8 : 0.7; hitR = kind === 'pusher' ? 1.4 : 1.1;
   }
-  e.add(body);
   // weicher Kontaktschatten wandert automatisch mit (Kind des Gegners)
   const eShadow = new THREE.Mesh(contactShadowGeo, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false }));
-  eShadow.rotation.x = -Math.PI / 2; eShadow.position.y = 0.04; eShadow.scale.setScalar(kind === 'pusher' ? 0.95 : 0.8); e.add(eShadow);
-  if (kind === 'pusher') for (const sx of [-1, 1]) { const fist = new THREE.Mesh(new THREE.SphereGeometry(0.34, 9, 8), new THREE.MeshLambertMaterial({ color: pal.accent })); fist.position.set(sx * 0.55, 0.8, 0.8); e.add(fist); }
-  else for (const [lx, lz] of [[-0.3, 0.2], [0.3, 0.2], [-0.3, -0.2], [0.3, -0.2]]) { const foot = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 6), new THREE.MeshLambertMaterial({ color: pal.accent, flatShading: true })); foot.scale.set(1, 0.6, 1.1); foot.position.set(lx, 0.12, lz); e.add(foot); }
-  const p = freeSpot(0.75, 1.3);
+  eShadow.rotation.x = -Math.PI / 2; eShadow.position.y = 0.04; eShadow.scale.setScalar(sleeping ? 1.6 : (kind === 'pusher' ? 0.95 : 0.8)); e.add(eShadow);
+  const p = freeSpot(0.75, sleeping ? 2.0 : 1.3);
   e.position.set(p.x, groundHeight(p.x, p.z), p.z);
-  // Wie die Bären im Original: die Hälfte der Jäger schläft, bis man ihnen zu nahe kommt
-  const sleeping = kind === 'chaser' && Math.random() < 0.5;
-  e.userData = { kind, body, heading: Math.random() * Math.PI * 2, speed: (kind === 'pusher' ? 2.0 : 2.7) + level * 0.4, retarget: 0, bob: Math.random() * 6, windup: 0, cooldown: 0, r: kind === 'pusher' ? 0.8 : 0.7, sleeping };
+  e.userData = { kind, body, baseY, heading: Math.random() * Math.PI * 2, speed: (kind === 'pusher' ? 2.0 : (sleeping ? 2.2 : 2.7)) + level * 0.4, retarget: 0, bob: Math.random() * 6, windup: 0, cooldown: 0, r: rad, hitR, sleeping };
   islandGroup.add(e); enemies.push(e);
 }
 
@@ -54639,15 +54732,16 @@ function makeGoal() {
   const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
   const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 6, 24), ringMat);
   ring.rotation.x = Math.PI / 2; ring.position.y = 0.4; g.add(ring);
-  // Fähnchen als weithin sichtbarer Marker
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 2.4, 6), new THREE.MeshLambertMaterial({ color: 0xd8d8e0 }));
-  pole.position.set(1.15, 1.5, 0); g.add(pole);
-  const flagMat = new THREE.MeshLambertMaterial({ color: 0xff4040, flatShading: true, side: THREE.DoubleSide });
-  const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.5), flagMat);
-  flag.position.set(1.6, 2.45, 0); g.add(flag);
+  // Eingravierter Pfeil auf dem Knopf — exakt wie in der Vorlage (dunkelroter Aufwärtspfeil)
+  const arrowMat = new THREE.MeshLambertMaterial({ color: 0x991a10, flatShading: true });
+  const arrow = new THREE.Group();
+  const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.85), arrowMat); shaft.position.z = -0.18; arrow.add(shaft);
+  const headL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.16), arrowMat); headL.position.set(-0.22, 0, 0.32); headL.rotation.y = -0.7; arrow.add(headL);
+  const headR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.16), arrowMat); headR.position.set(0.22, 0, 0.32); headR.rotation.y = 0.7; arrow.add(headR);
+  arrow.position.y = 0.66; g.add(arrow);
   const groundGlow = new THREE.Mesh(new THREE.CircleGeometry(2.4, 20), new THREE.MeshBasicMaterial({ color: 0xff6a5a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.y = 0.02; g.add(groundGlow);
-  g.userData = { btn, btnMat, ring, ringMat, flag, groundGlow, active: false, lastCountFloat: 0 };
+  g.userData = { btn, btnMat, ring, ringMat, arrow, groundGlow, active: false, lastCountFloat: 0 };
   return g;
 }
 
@@ -54790,96 +54884,88 @@ function applyCharacter() {
 // ===================================================================
 //  Hub World (3D interaktives Hauptmenü)
 // ===================================================================
-function makeHubTexture(line1, line2, bg) {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+// Icon-Textur für die Hub-Discs: großes weißes Symbol mit dunklem Rand
+function makeIconTexture(glyph) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
   const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, 256, 128);
-  ctx.fillStyle = bg;
-  const rr2 = 18, x2 = 4, y2 = 4, w2 = 248, h2 = 120;
-  ctx.beginPath();
-  if (ctx.roundRect) { ctx.roundRect(x2, y2, w2, h2, rr2); }
-  else { ctx.moveTo(x2+rr2,y2); ctx.lineTo(x2+w2-rr2,y2); ctx.quadraticCurveTo(x2+w2,y2,x2+w2,y2+rr2); ctx.lineTo(x2+w2,y2+h2-rr2); ctx.quadraticCurveTo(x2+w2,y2+h2,x2+w2-rr2,y2+h2); ctx.lineTo(x2+rr2,y2+h2); ctx.quadraticCurveTo(x2,y2+h2,x2,y2+h2-rr2); ctx.lineTo(x2,y2+rr2); ctx.quadraticCurveTo(x2,y2,x2+rr2,y2); ctx.closePath(); }
-  ctx.fill();
-  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 52px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(line1, 128, 52);
-  ctx.font = 'bold 26px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.88)';
-  ctx.fillText(line2, 128, 96);
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.font = 'bold 78px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.strokeText(glyph, 64, 70);
+  ctx.fillStyle = '#ffffff'; ctx.fillText(glyph, 64, 70);
   return new THREE.CanvasTexture(c);
 }
 
+// Hub-Discs wie in der Vorlage: Rot=Spielen, Pink=Preisbox, Grün=Charaktere, Blau=Optionen + Gratis-Geschenk mit Timer
 const HUB_BUTTONS = [
-  { label: '▶ Spielen', sub: 'Start', color: 0xffd23f, textBg: '#ff9500', action: 'play', angle: Math.PI * 0.5 },
-  { label: '🎁 Chars', sub: 'Charaktere', color: 0xd080ff, textBg: '#8e44ad', action: 'chars', angle: Math.PI * 1.17 },
-  { label: '⚙️ Settings', sub: 'Einstellungen', color: 0x7fd0ff, textBg: '#2980b9', action: 'settings', angle: Math.PI * 1.83 },
+  { label: '▶ Spielen', glyph: '▶', color: 0xe23f2f, action: 'play', angle: -Math.PI / 2, radius: 8.5 },
+  { label: '? Preisbox', glyph: '?', color: 0xd84a9a, action: 'prize', angle: 0, radius: 8.5, dots: true },
+  { label: '🐾 Charaktere', glyph: '🐾', color: 0x46a848, action: 'chars', angle: Math.PI, radius: 8.5 },
+  { label: '⚙️ Optionen', glyph: '⚙', color: 0x3a7ad8, action: 'settings', angle: Math.PI / 2, radius: 8.5 },
+  { label: '🎁 Gratis-Geschenk', glyph: '🎁', color: 0x8a8a94, action: 'gift', angle: Math.PI * 0.25, radius: 10.5, dots: true },
 ];
+const GIFT_MS = 4 * 3600 * 1000;
+function giftReady() { return Date.now() - (+localStorage.getItem('ls_giftAt') || 0) > GIFT_MS; }
+function giftCountdown() {
+  const left = Math.max(0, GIFT_MS - (Date.now() - (+localStorage.getItem('ls_giftAt') || 0)));
+  const h = Math.floor(left / 3600000), m = Math.floor(left / 60000) % 60, s = Math.floor(left / 1000) % 60;
+  return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
 function buildHubIsland() {
   if (hubIsland) { scene.remove(hubIsland); world.remove(hubIsland); disposeGroup(hubIsland); }
   hubIsland = new THREE.Group();
   hubButtons3d = [];
 
-  // Simple round hub island
-  const hr = 16, segs = 28, rings = 14, hubPos = [], hubIdx = [], hubColors = [];
-  const cG = new THREE.Color(0x4acc56), cL = new THREE.Color(0x2a8a3a);
-  const rowStart = [];
-  for (let i = 0; i <= rings; i++) {
-    rowStart.push(hubPos.length / 3);
-    for (let j = 0; j <= segs; j++) {
-      const a = (j / segs) * Math.PI * 2, r = hr * (i / rings);
-      hubPos.push(Math.cos(a) * r, 0, Math.sin(a) * r);   // flat deck — matches the player's y so nothing floats/sinks
-      const c = cG.clone().lerp(cL, Math.random() * 0.35); hubColors.push(c.r, c.g, c.b);
-    }
+  // WOLKEN-Insel wie in der Vorlage: weißes flauschiges Deck mit Puff-Rand
+  const hr = 15;
+  const cloudWhite = new THREE.MeshLambertMaterial({ color: 0xfcfdff, flatShading: true });
+  const deck = new THREE.Mesh(new THREE.CylinderGeometry(hr, hr * 0.82, 2.6, 22), cloudWhite);
+  deck.position.y = -1.3; deck.receiveShadow = true; hubIsland.add(deck);
+  // Puff-Kranz am Rand + weiche Bäuche unten
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + Math.random() * 0.2;
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(2.2 + Math.random() * 1.4, 8, 7), cloudWhite);
+    puff.scale.y = 0.7;
+    puff.position.set(Math.cos(a) * (hr - 0.8), -0.7 - Math.random() * 0.8, Math.sin(a) * (hr - 0.8));
+    hubIsland.add(puff);
   }
-  for (let i = 0; i < rings; i++) for (let j = 0; j < segs; j++) {
-    const a = rowStart[i]+j, b = rowStart[i]+j+1, c2 = rowStart[i+1]+j, d = rowStart[i+1]+j+1;
-    hubIdx.push(a,b,c2, c2,b,d);
-  }
-  const skirtT = rowStart[rings], sb = hubPos.length / 3;
-  for (let j = 0; j <= segs; j++) { const a = (j/segs)*Math.PI*2; hubPos.push(Math.cos(a)*hr,-9,Math.sin(a)*hr); hubColors.push(0.42,0.27,0.16); }
-  for (let j = 0; j < segs; j++) { const a = skirtT+j,b = skirtT+j+1,c2 = sb+j,d = sb+j+1; hubIdx.push(a,b,c2,c2,b,d); }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(hubPos, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(hubColors, 3));
-  geo.setIndex(hubIdx); geo.computeVertexNormals();
-  const terrain = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }));
-  terrain.receiveShadow = true; hubIsland.add(terrain);
-  const dirt = new THREE.Mesh(new THREE.CylinderGeometry(hr*0.55,hr*0.35,8,12), new THREE.MeshLambertMaterial({ color:0x6a4428,flatShading:true }));
-  dirt.position.y = -9; hubIsland.add(dirt);
-
-  // A few trees for atmosphere
-  const treeMat = new THREE.MeshLambertMaterial({ color: 0x2a8840, flatShading: true });
   for (let i = 0; i < 8; i++) {
-    const ta = (i / 8) * Math.PI * 2 + 0.4, tr2 = 10 + Math.random() * 3;
-    const tx = Math.cos(ta)*tr2, tz = Math.sin(ta)*tr2;
-    const tg = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.26,1.1,6), new THREE.MeshLambertMaterial({color:0x7a4a26})); trunk.position.y=0.55; tg.add(trunk);
-    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.8+Math.random()*0.4,8,7), treeMat); crown.position.y=1.7; tg.add(crown);
-    tg.position.set(tx,0,tz); tg.scale.setScalar(0.9+Math.random()*0.3); hubIsland.add(tg);
+    const a = Math.random() * Math.PI * 2, rr = Math.random() * hr * 0.6;
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(2.6 + Math.random() * 1.8, 8, 7), cloudWhite);
+    puff.scale.y = 0.6;
+    puff.position.set(Math.cos(a) * rr, -2.6 - Math.random(), Math.sin(a) * rr);
+    hubIsland.add(puff);
   }
 
-  // Hub button platforms
-  const platR = 9;
-  for (const hb of HUB_BUTTONS) {
-    const bx = Math.cos(hb.angle) * platR, bz = Math.sin(hb.angle) * platR;
-    const g = new THREE.Group();
-    // Raised platform
-    const platMat = new THREE.MeshLambertMaterial({ color: hb.color, flatShading: true });
-    const plat = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.85, 0.55, 8), platMat);
-    plat.position.y = 0.28; plat.castShadow = true; g.add(plat);
-    // Pillar
-    const pill = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.45,1.0,7), new THREE.MeshLambertMaterial({color:0x556677,flatShading:true}));
-    pill.position.y = -0.75; g.add(pill);
-    // Label plane (canvas texture)
-    const tex = makeHubTexture(hb.label, hb.sub, hb.textBg);
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
-    plane.rotation.x = -Math.PI / 2; plane.position.y = 0.57; g.add(plane);
-    // Glow ring
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.7,0.14,7,24), new THREE.MeshBasicMaterial({ color: hb.color, transparent: true, opacity: 0.55 }));
-    ring.rotation.x = Math.PI/2; ring.position.y = 0.56; g.add(ring);
+  // Grauer Stein-Sockel in der Mitte — hier steht der aktuelle Charakter (Vorlage: Podest)
+  const ped = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.5, 0.16, 10), new THREE.MeshLambertMaterial({ color: 0x8d94a2, flatShading: true }));
+  ped.position.y = 0.08; hubIsland.add(ped);
 
+  // Farbige Runddiscs, in die Wolke eingelassen
+  for (const hb of HUB_BUTTONS) {
+    const bx = Math.cos(hb.angle) * hb.radius, bz = Math.sin(hb.angle) * hb.radius;
+    const g = new THREE.Group();
+    const col = new THREE.Color(hb.color), dark = col.clone().lerp(new THREE.Color(0x000000), 0.35);
+    const rimD = new THREE.Mesh(new THREE.CylinderGeometry(2.85, 2.95, 0.16, 18), new THREE.MeshLambertMaterial({ color: dark.getHex ? dark.getHex() : hb.color, flatShading: true }));
+    rimD.position.y = 0.08; g.add(rimD);
+    const platMat = new THREE.MeshLambertMaterial({ color: hb.color, flatShading: true });
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(2.45, 2.55, 0.2, 18), platMat);
+    plat.position.y = 0.2; plat.castShadow = true; g.add(plat);
+    // Symbol auf der Disc
+    const icon = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4), new THREE.MeshBasicMaterial({ map: makeIconTexture(hb.glyph), transparent: true, depthWrite: false }));
+    icon.rotation.x = -Math.PI / 2; icon.position.y = 0.32; g.add(icon);
+    // Punkte-Kranz (wie um die Preis- und Timer-Discs der Vorlage)
+    if (hb.dots) for (let i = 0; i < 10; i++) {
+      const da = (i / 10) * Math.PI * 2;
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+      dot.position.set(Math.cos(da) * 3.25, 0.14, Math.sin(da) * 3.25); g.add(dot);
+    }
+    // Aktivierungs-Ring (vom Dwell-Code gepulst)
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.75, 0.12, 6, 26), new THREE.MeshBasicMaterial({ color: hb.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    ring.rotation.x = Math.PI / 2; ring.position.y = 0.34; g.add(ring);
     g.position.set(bx, 0, bz);
     hubIsland.add(g);
-    hubButtons3d.push({ group: g, ring, plat, action: hb.action, label: hb.label, dwellT: 0, r: 2.6 });
+    hubButtons3d.push({ group: g, ring, plat, action: hb.action, label: hb.label, dwellT: 0, r: 2.7, armed: true });
   }
 
   world.add(hubIsland);
@@ -54935,8 +55021,18 @@ function stepHub(dt) {
           hb.dwellT = 0; hb.armed = false;
           Sound.init();
           if (hb.action === 'play') { startGame(); return; }
-          else if (hb.action === 'chars') { openShop(); }
+          else if (hb.action === 'chars' || hb.action === 'prize') { openShop(); }
           else if (hb.action === 'settings') { openSettings(); }
+          else if (hb.action === 'gift') {
+            if (giftReady()) {
+              localStorage.setItem('ls_giftAt', Date.now());
+              state.coins += 15; state.runCoins += 0; localStorage.setItem('landsliders_coins', state.coins);
+              Sound.win(); buzz(25); showFlash(0xffd23f, 0.3);
+              burst(hb.group.position.x, 1, hb.group.position.z, 0xffd23f, 24, 7, true);
+              showToast('🎁 +15 Münzen — nächstes Geschenk in 4h!');
+              updateHubPlate();
+            } else showToast('🎁 Nächstes Geschenk in ' + giftCountdown());
+          }
         }
       }
     } else {
@@ -54949,8 +55045,9 @@ function stepHub(dt) {
     hb.plat.scale.set(sc, 1+hb.dwellT*0.08, sc);
   }
   if (hubHintEl) {
-    if (nearBtn) hubHintEl.textContent = nearBtn.dwellT > 0.2 ? `→ ${nearBtn.label}` : `Halt kurz inne: ${nearBtn.label}`;
-    else hubHintEl.textContent = 'Gleite zu einer Plattform' + (state.hiscore ? `  ·  🏆 ${state.hiscore}` : '') + (state.depth ? `  ·  ⛏ Tiefe ${state.depth}` : '');
+    if (nearBtn && nearBtn.action === 'gift' && !giftReady()) hubHintEl.textContent = `🎁 Nächstes Geschenk in ${giftCountdown()}`;
+    else if (nearBtn) hubHintEl.textContent = nearBtn.dwellT > 0.2 ? `→ ${nearBtn.label}` : `Halt kurz inne: ${nearBtn.label}`;
+    else hubHintEl.textContent = 'Gleite zu einer Disc';
   }
 }
 
@@ -55121,6 +55218,34 @@ const Sound = (() => {
 // Sanfte Haptik (Android-Vibration): winzige Pulse machen Einsammeln/Landen fühlbar
 function buzz(ms) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
 
+// --- Mini-Quests: pro Run eine kleine Mission im lila Banner unten (Vorlage-Stil) ---
+const QUEST_POOL = [
+  { t: 'coins', n: 12, txt: '❗ Sammle 12 🪙 in diesem Run!' },
+  { t: 'tricks', n: 3, txt: '❗ Mache 3 ✨ Luft-Tricks!' },
+  { t: 'fever', n: 1, txt: '❗ Zünde 1× das 🔥 Fieber!' },
+  { t: 'level', n: 2, txt: '❗ Schaffe 2 Inseln in einem Run!' },
+  { t: 'coins', n: 25, txt: '❗ Sammle 25 🪙 in diesem Run!' },
+];
+let quest = null;
+function startQuest() {
+  quest = { ...QUEST_POOL[Math.floor(Math.random() * QUEST_POOL.length)], prog: 0 };
+  questBar.classList.remove('hidden', 'done');
+  questTxt.textContent = quest.txt;
+}
+function questProg(type, amt = 1) {
+  if (!quest || quest.t !== type) return;
+  quest.prog += amt;
+  if (quest.prog >= quest.n) {
+    state.coins += 10; state.runCoins += 10; localStorage.setItem('landsliders_coins', state.coins);
+    questBar.classList.add('done'); questTxt.textContent = '✓ Mission erfüllt! +10 🪙';
+    Sound.power(); showFlash(0x44dd66, 0.22); buzz(20);
+    quest = null; updateHUD();
+    setTimeout(() => questBar.classList.add('hidden'), 2400);
+  } else {
+    questTxt.textContent = quest.txt + '  (' + Math.min(quest.prog, quest.n) + '/' + quest.n + ')';
+  }
+}
+
 // --- Eingesammelte Objekte fliegen zum Spieler und schrumpfen weg (statt hart zu verschwinden) ---
 const flyers = [], _flyTarget = new THREE.Vector3();
 function startFly(m) { m.userData.flyT = 0; flyers.push(m); world.add(m); }
@@ -55229,11 +55354,27 @@ addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 // ===================================================================
 //  HUD / Overlays
 // ===================================================================
-const scoreBadge = document.getElementById('scoreBadge'), coinsBadge = document.getElementById('coinsBadge'), comboBadge = document.getElementById('comboBadge'), starBadge = document.getElementById('starBadge'), levelBadge = document.getElementById('levelBadge'), livesBadge = document.getElementById('livesBadge'), puzzleBadge = document.getElementById('puzzleBadge');
+const scoreBadge = document.getElementById('scoreBadge'), coinsBadge = document.getElementById('coinsBadge'), comboBadge = document.getElementById('comboBadge'), levelBadge = document.getElementById('levelBadge'), livesBadge = document.getElementById('livesBadge'), puzzleBadge = document.getElementById('puzzleBadge');
+const swagSign = document.getElementById('swagSign'), swagCnt = document.getElementById('swagCnt'), swagBest = document.getElementById('swagBest');
+const questBar = document.getElementById('questBar'), questTxt = document.getElementById('questTxt');
 const overlay = document.getElementById('overlay'), startBtn = document.getElementById('startBtn'), soundBtn = document.getElementById('soundBtn'), toast = document.getElementById('toast');
 const shop = document.getElementById('shop'), shopClose = document.getElementById('shopClose'), lootBtn = document.getElementById('lootBtn'), shopCoins = document.getElementById('shopCoins'), lootCostEl = document.getElementById('lootCost'), charGrid = document.getElementById('charGrid');
 soundBtn.addEventListener('click', () => { Sound.init(); soundBtn.textContent = Sound.toggle() ? '🔊' : '🔇'; });
-function updateHUD() { scoreBadge.textContent = '🏆 ' + state.score; coinsBadge.textContent = '🪙 ' + state.coins; comboBadge.textContent = '×' + state.combo + (state.fever ? ' 🔥' : ''); comboBadge.style.display = state.combo > 1 ? '' : 'none'; updateVignette(); comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.04) + ')'; starBadge.textContent = charById(state.character).favIco + ' ' + state.collected + '/' + state.total; levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level; livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀'; if (buttons.length) { puzzleBadge.style.display = ''; if (puzzleMode === 'count') puzzleBadge.textContent = state.puzzleSolved ? '✅ Gezählt!' : (state.countHint || '🔢 Zähle!'); else puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none'; }
+function updateHUD() {
+  const c = charById(state.character);
+  // Großes Zähler-Schild in der Charakterfarbe — das Herzstück des Vorlage-HUDs
+  swagCnt.textContent = state.collected + '/' + state.total + ' ' + c.favIco;
+  swagBest.textContent = 'Best: ' + state.hiscore;
+  swagSign.style.background = '#' + c.body.toString(16).padStart(6, '0');
+  scoreBadge.textContent = '🏆 ' + state.score;
+  coinsBadge.textContent = '🪙 ' + state.coins;
+  comboBadge.textContent = '×' + state.combo + (state.fever ? ' 🔥' : ''); comboBadge.style.display = state.combo > 1 ? '' : 'none';
+  comboBadge.style.transform = 'scale(' + (1 + (state.combo - 1) * 0.04) + ')';
+  updateVignette();
+  levelBadge.textContent = themeFor(state.level).name + ' · Lvl ' + state.level;
+  livesBadge.textContent = '❤️'.repeat(Math.max(0, state.lives)) || '💀';
+  if (buttons.length) { puzzleBadge.style.display = ''; if (puzzleMode === 'count') puzzleBadge.textContent = state.puzzleSolved ? '✅ Gezählt!' : (state.countHint || '🔢 Zähle!'); else puzzleBadge.textContent = state.puzzleSolved ? '🔢 ✓' : '🔢 ' + state.puzzleStep + '/' + buttons.length; } else puzzleBadge.style.display = 'none';
+}
 let toastTimer = 0;
 function showToast(msg) { toast.textContent = msg; toast.classList.add('vis'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('vis'), 1700); }
 
@@ -55299,7 +55440,14 @@ function renderShop() {
   }
 }
 function openShop() { shop.classList.add('open'); renderShop(); }
-function closeShop() { shop.classList.remove('open'); }
+function closeShop() { shop.classList.remove('open'); if (hubMode) updateHubPlate(); }
+// Namensschild im Hub: aktueller Charakter + Münzen/Best/Tiefe
+function updateHubPlate() {
+  const c = charById(state.character);
+  const n = document.getElementById('plateName'), s = document.getElementById('plateSub');
+  if (n) n.textContent = c.ico + ' ' + c.name;
+  if (s) s.textContent = '🪙 ' + state.coins + ' · 🏆 ' + state.hiscore + (state.depth ? ' · ⛏ ' + state.depth : '');
+}
 // Preisautomat wie im Original: Kapsel schüttelt sich, ploppt auf und enthüllt den neuen Charakter
 lootBtn.addEventListener('click', () => {
   Sound.init();
@@ -55433,6 +55581,8 @@ function enterHubMode() {
   hubMode = true; state.running = false; clearDrag(); balloonRide = null;
   // Hide game UI, show hub UI
   document.getElementById('hud').style.display = 'none';
+  document.getElementById('swagSign').style.display = 'none';
+  document.getElementById('questBar').classList.add('hidden');
   document.getElementById('pauseBtn').style.display = 'none';
   document.getElementById('dashBtn').style.display = 'none';
   document.getElementById('comboBar').style.display = 'none';
@@ -55445,14 +55595,16 @@ function enterHubMode() {
   state.pos.set(0, 0); state.vel.set(0, 0); state.y = 0;
   player.position.set(0, 0, 0); player.rotation.set(0, 0, 0);
   applyCharacter();
+  updateHubPlate();
   Sound.music('hub');
-  // Hub theme
-  scene.background.setHex(0x6dd8f8); scene.fog.color.setHex(0x88e4ff); hemi.color.setHex(0xd8f0ff); hemi.groundColor.setHex(0x3a8a4a); seaMat.color.setHex(0x1a80c8); seaBaseHex = 0x1a80c8;
+  // Hub-Stimmung wie in der Vorlage: lila-blauer Himmel über einem Wolkenmeer
+  scene.background.setHex(0x7d8bef); scene.fog.color.setHex(0x9aa6f4); hemi.color.setHex(0xe8ecff); hemi.groundColor.setHex(0x8a90c8); seaMat.color.setHex(0xdfe4ff); seaBaseHex = 0xdfe4ff;
 }
 
 function leaveHubMode() {
   hubMode = false; clearDrag();
   document.getElementById('hud').style.display = '';
+  document.getElementById('swagSign').style.display = '';
   document.getElementById('pauseBtn').style.display = '';
   document.getElementById('dashBtn').style.display = '';
   document.getElementById('comboBar').style.display = '';
@@ -55470,6 +55622,7 @@ function startGame() {
   if (state.buyLife) { state.lives = 4; state.buyLife = false; }
   if (state.buyDoubler) { state.runCoinMult = 2; state.buyDoubler = false; showToast('💰 Münz-Verdoppler aktiv!'); }
   if (levelFadeEl) levelFadeEl.classList.remove('fade-in'); pauseEl.classList.remove('open'); settingsEl.classList.remove('open'); overlay.classList.add('hidden'); shop.classList.remove('open');
+  startQuest();
   state.running = true; startLevel(1);
 }
 function endGame(won) {
@@ -55498,7 +55651,7 @@ function bumpCombo() {
   const prev = state.combo;
   state.combo = Math.min(20, state.combo + 1);
   state.comboMax = Math.max(state.comboMax, state.combo);
-  if (state.combo >= 8 && !state.fever) { state.fever = true; showToast('🔥 FEVER! ×1.5 Punkte'); }
+  if (state.combo >= 8 && !state.fever) { state.fever = true; showToast('🔥 FEVER! ×1.5 Punkte'); questProg('fever'); }
   if (state.combo !== prev && COMBO_TIERS[state.combo]) {
     const [label, col] = COMBO_TIERS[state.combo];
     showToast('×' + state.combo + ' ' + label); showFlash(col, 0.22);
@@ -55511,7 +55664,7 @@ function launch(power) { state.grounded = false; state.vy = power; state.y += 0.
 function doAirTrick() {
   if (state.trickDone || state.paused || performance.now() < state.dashUntil) return;
   state.trickDone = true; state.trickUntil = performance.now() + 420;
-  addScore(30); Sound.trick(); buzz(8);
+  addScore(30); Sound.trick(); buzz(8); questProg('tricks');
   showFloat('✨ Trick +30', state.pos.x, state.y + 1.6, state.pos.y, '#bff0ff');
 }
 
@@ -55711,9 +55864,9 @@ function step(dt) {
     for (const ob of obstacles) { if (Math.hypot(ex - ob.position.x, ez - ob.position.z) < ob.userData.r + u.r) { hitObstacle = true; break; } }
     if (!hitObstacle && insideIsland(ex, ez, 1) && !inHole(ex, ez)) { e.position.x = ex; e.position.z = ez; e.position.y = groundHeight(ex, ez); }
     else { u.heading += Math.PI + (Math.random() - 0.5); u.retarget = 0.4; }
-    e.rotation.y = u.heading; u.bob += dt * 8; u.body.position.y = (u.kind === 'pusher' ? 0.9 : 0.8) + Math.abs(Math.sin(u.bob)) * 0.18;
+    e.rotation.y = u.heading; u.bob += dt * 8; u.body.position.y = (u.baseY || 0.8) + Math.abs(Math.sin(u.bob)) * 0.18;
     u.body.scale.set(1 + u.windup * 0.25, 1 - u.windup * 0.2, 1 + u.windup * 0.25);
-    const hitR = u.kind === 'pusher' ? 1.4 : 1.1;
+    const hitR = u.hitR || (u.kind === 'pusher' ? 1.4 : 1.1);
     if (distP < hitR && state.grounded && !invinc && Math.abs(state.y - e.position.y) < 1.6) {
       if (u.kind === 'pusher') { const kick = 18 + u.windup * 12; applyKnockback(toPx, toPz, kick); u.windup = 0; u.cooldown = 1.2; state.invincibleUntil = performance.now() + 350; state.shake = 0.4; Sound.whoosh(); burst(e.position.x, e.position.y + 1, e.position.z, 0xff8a3d, 12, 6); showToast('🟠 Weggeschubst!'); }
       else { if (state.shield) { state.shield = false; shieldFx.visible = false; Sound.bounce(); burst(e.position.x, e.position.y + 1, e.position.z, 0x33c1ff, 14, 6); u.heading += Math.PI; state.invincibleUntil = performance.now() + 600; showToast('🛡 Schild aufgebraucht!'); } else { hurt('👾 Jäger getroffen!'); return; } }
@@ -55780,11 +55933,11 @@ function step(dt) {
     }
   }
 
-  // --- Lava-Tümpel (Vulkan-Bodengefahr) ---
+  // --- Bodengefahren: Lava, Wassertümpel, Stacheln ---
   for (const lv of floorHaz) {
     if (state.grounded && !invinc && Math.hypot(state.pos.x - lv.x, state.pos.y - lv.z) < lv.r - 0.3) {
       if (state.shield) { state.shield = false; shieldFx.visible = false; state.invincibleUntil = performance.now() + 700; Sound.bounce(); showToast('🛡 Schild aufgebraucht!'); }
-      else { hurt('🌋 Lava!'); return; }
+      else { if (lv.kind === 'water') Sound.splash(); hurt(lv.msg || '🌋 Autsch!'); return; }
     }
   }
 
@@ -55806,7 +55959,7 @@ function step(dt) {
       Sound.star(state.combo); burst(s.position.x, s.position.y, s.position.z, fi.color, isBonus ? 20 : 14, isBonus ? 7 : 5, true);
       showFloat((isBonus ? '★ +' : '+') + pts, s.position.x, s.position.y + 1.4, s.position.z, isBonus ? '#ffe27a' : '#ffd23f');
       if (state.combo >= 3) { showFloat('Combo ×' + state.combo + '!', s.position.x, s.position.y + 2.2, s.position.z, '#ff9d45'); showFlash(0xffaa00, 0.18); }
-      updateHUD(); popBadge(starBadge);
+      updateHUD(); popBadge(swagSign);
       if (!isBonus && state.collected >= state.total) { if (state.puzzleSolved || !buttons.length) activateGoal(); else showToast(fi.ico + ' Alle gesammelt — jetzt das 🔢 Rätsel lösen!'); }
     }
   }
@@ -55819,6 +55972,7 @@ function step(dt) {
       islandGroup.remove(c); startFly(c); coins.splice(i, 1); buzz(6);
       let got = (tr === 'coin2' ? 2 : 1) * (state.runCoinMult || 1); state.coins += got; state.runCoins += got; localStorage.setItem('landsliders_coins', state.coins); addScore(Math.round(25 * (state.fever ? 1.5 : 1)));
       bumpCombo();   // coins keep the combo alive too, so fever isn't star-only
+      questProg('coins', got);
       Sound.coin(); burst(c.position.x, c.position.y, c.position.z, 0xffc107, 8, 4, true);
       showFloat('+' + got + ' 🪙', c.position.x, c.position.y + 1.2, c.position.z, '#ffd040');
       updateHUD();
@@ -55853,6 +56007,7 @@ function step(dt) {
     burst(goal.position.x, goal.position.y + 1.6, goal.position.z, 0xffd07a, 26, 8, true);
     showFlash(0xffe0a0, 0.3); punchFOV(5); Sound.win(); buzz(18);
     if (state.level >= state.depth) { state.depth = state.level; localStorage.setItem('landsliders_depth', state.depth); }
+    questProg('level');
     if (state.level === 6) showToast('🏆 Alle 6 Welten! Die endlose Reise beginnt…');
     else showToast('🚀 Abflug! +' + bonus + (state.fever ? ' 🔥' : ''));
     startBalloonRide(state.level + 1); return;
@@ -55964,18 +56119,21 @@ function animate() {
     o.scale.setScalar(Math.max(0.01, o.userData.baseScale * k * (1 + 0.35 * Math.sin(k * Math.PI))));
     if (k >= 1) { o.scale.setScalar(o.userData.baseScale); o.userData.grown = true; }
   };
-  for (const s of stars) { popIn(s); s.rotation.y = t * 2; s.position.y = s.userData.baseY + Math.sin(t * 3 + s.position.x) * 0.15; }
-  for (const c of coins) { popIn(c); c.rotation.z = t * 4; c.position.y = c.userData.baseY + Math.sin(t * 3 + c.position.x) * 0.12; }
+  for (const s of stars) {
+    popIn(s); s.rotation.y = t * 1.1; s.position.y = s.userData.baseY + Math.sin(t * 2.4 + s.position.x) * 0.05;
+    // Shiny Swag: gelegentliches Glitzern über den Objekten
+    if (settings.quality !== 'low' && Math.random() < dt * 0.12) burst(s.position.x, s.position.y + 0.4, s.position.z, 0xfff6c0, 1, 1.2, true);
+  }
+  for (const c of coins) { popIn(c); c.rotation.z = t * 2.2; c.position.y = c.userData.baseY + Math.sin(t * 2.4 + c.position.x) * 0.04; }
   for (const pu of powerups) { pu.userData.orb.rotation.y = t * 2; pu.userData.orb.position.y = 1.2 + Math.sin(t * 2.5 + pu.position.x) * 0.2; }
   updateSea(t);
   updateGuideArrow(t);
   updateCritters(t, dt);
   for (const c of cloudGroup.children) c.rotation.y += c.userData.spin * dt;
-  // --- Exit-Knopf: Fähnchen weht immer; aktiv pulsiert er; gesperrt zeigt er nahebei die Restanzahl ---
+  // --- Exit-Knopf: aktiv pulsiert er (Pfeil dreht langsam); gesperrt zeigt er nahebei die Restanzahl ---
   if (goal) {
     const d = goal.userData;
-    d.flag.rotation.y = Math.sin(t * 3.2) * 0.35;                              // wehendes Fähnchen
-    d.flag.scale.x = 1 + Math.sin(t * 6.4) * 0.06;
+    d.arrow.rotation.y = d.active ? t * 0.8 : 0;                               // bereiter Pfeil rotiert einladend
     if (d.active) {
       d.btnMat.emissiveIntensity = 0.7 + Math.sin(t * 5) * 0.3;                // einladendes Pulsieren
       const rs = 1 + Math.sin(t * 5) * 0.08; d.ring.scale.set(rs, rs, 1);
@@ -56005,7 +56163,7 @@ function animate() {
       btn.topMat.emissiveIntensity = 0.5 + Math.sin(t * 4 + btn.num) * 0.4;
     }
   }
-  for (const lv of floorHaz) lv.mesh.material.color.setRGB(1, 0.27 + Math.sin(t * 3 + lv.x) * 0.08, 0);
+  for (const lv of floorHaz) { if (lv.kind === 'lava' && lv.mesh) lv.mesh.material.color.setRGB(1, 0.27 + Math.sin(t * 3 + lv.x) * 0.08, 0); }
   // Eye gaze: pupils track movement direction subtly; regelmäßiges Blinzeln macht die Figur lebendig
   if (eyeL && eyeR) {
     if (state.vel.length() > 0.5) {
